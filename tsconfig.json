@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "ES2021",
+        "allowJs": true,
+        "esModuleInterop": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "@utils/*": [ "./src/utils/*" ],
+            "@controllers/*": [ "./src/controllers/*" ],
+            "@types/*": [ "./src/types/*" ]
+        }
+    }
+}
