@@ -1,12 +1,17 @@
-import { config } from 'dotenv';
-import { MongoClient } from 'mongodb';
+import { IColetaUser } from '@types/Database';
+import { Db, MongoClient } from 'mongodb';
 
-config();
+const mongoUrl = process.env['MONGODB_URL_CONNECTION'] ?? 'mongodb://localhost:27017/';
 
-let currentConnection: MongoClient;
+let currentConnection: Db;
 
-export async function connect(): Promise<MongoClient> {
+export async function openMongoConnection(): Promise<Db> {
     if (currentConnection) return currentConnection;
+    const mongoClient = new MongoClient(mongoUrl);
+    const databaseConnection = await mongoClient.connect();
+    return currentConnection = databaseConnection.db('coletaverde');
+}
 
-    currentConnection = new MongoClient();
+export async function testGet(): Promise<any[]> {
+    return currentConnection.collection('Main').find({}).toArray();
 }

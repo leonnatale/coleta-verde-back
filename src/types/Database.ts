@@ -1,5 +1,5 @@
 /* Enums */
-export enum EColetaRole {
+enum EColetaRole {
     user,
     enterprise,
     employee,
