@@ -1,5 +1,7 @@
+import { Document } from 'mongodb';
+
 /* Enums */
-enum EColetaRole {
+export enum EColetaRole {
     user,
     enterprise,
     employee,
@@ -7,8 +9,9 @@ enum EColetaRole {
 }
 
 /* Interfaces */
-export interface IColetaUser {
+export interface IColetaUser extends Document {
     id: number,
     name: string,
+    password?: string,
     role: EColetaRole
 }

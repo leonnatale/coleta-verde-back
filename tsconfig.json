@@ -1,17 +1,20 @@
 {
     "compilerOptions": {
-        "module": "NodeNext",
-        "target": "ES2021",
-        "allowJs": true,
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
         "strict": true,
-        "forceConsistentCasingInFileNames": true,
         "skipLibCheck": true,
         "baseUrl": ".",
         "paths": {
             "@utils/*": [ "./src/utils/*" ],
             "@controllers/*": [ "./src/controllers/*" ],
-            "@types/*": [ "./src/types/*" ]
+            "@datatypes/*": [ "./src/types/*" ]
         }
+    },
+    "ts-node": {
+        "esm": true,
+        "experimentalSpecifierResolution": "node"
     }
 }

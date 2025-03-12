@@ -1,8 +1,8 @@
 import chalk from 'chalk';
 
 function formatTime(type: string, hexColor: number): string {
-    const timestamp = new Date().toISOString();
-    return `[${chalk.bold.hex('#' + hexColor.toString(16))(type + ' - ' + timestamp)}]:`;
+    const timestamp = new Date().toLocaleTimeString();
+    return `[${chalk.hex('#' + hexColor.toString(16))(type)}] ${chalk.bold.gray(timestamp)}`;
 }
 
 function callLog(type: string, hexColor: number, ...args: any[]) {
@@ -11,12 +11,9 @@ function callLog(type: string, hexColor: number, ...args: any[]) {
 
 export default {
     log(...args: any[]) {
-        callLog('Log', 0xffffff, ...args);
+        callLog('LOG', 0xffffff, ...args);
     },
     warn(...args: any[]) {
-        callLog('Warning', 0xffffaa, ...args);
-    },
-    error(...args: any[]) {
-        callLog('Error', 0xffaaaa, ...args);
+        callLog('WARN', 0xffffaa, ...args);
     }
 };
