@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Coleta Verde",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

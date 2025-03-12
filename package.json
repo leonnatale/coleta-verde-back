@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@types/passport": "^1.0.17",
+    "bcryptjs": "^3.0.2",
     "chalk": "^4.1.2",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

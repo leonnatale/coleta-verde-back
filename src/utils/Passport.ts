@@ -2,12 +2,22 @@ import { ExtractJwt, Strategy, StrategyOptionsWithoutRequest } from 'passport-jw
 import { sign, verify } from 'jsonwebtoken';
 import Logger from './Logger';
 import { IColetaUser } from '@datatypes/Database';
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request } from 'express';
 import { IExpressResponse } from '@datatypes/Controllers';
+import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
+import { bold } from 'chalk';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const saltKey = process.env['SALT_KEY'] ?? 'salt';
 
-if (saltKey === 'salt') Logger.warn('No salt key provided, using default: ' + saltKey);
+if (saltKey === 'salt') Logger.warn('No salt key provided, using default.');
+
+const bcryptRounds = parseInt(process.env['BCRYPT_ROUNDS'] ?? '10');
+const bcryptSalt = genSaltSync(bcryptRounds);
+
+Logger.log(`Using ${bold(bcryptRounds)} rounds for bcrypt.`);
 
 const options: StrategyOptionsWithoutRequest = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -26,6 +36,10 @@ export function generateToken(user: IColetaUser): string {
     const token = sign(user, saltKey, { expiresIn: '1d' });
     return token;
 }
+
+export const encryptPassword = (value: string): string => hashSync(value, bcryptSalt);
+
+export const comparePassword = (value: string, hash: string): boolean => compareSync(value, hash);
 
 export const verifyTokenMiddleware = (request: Request, response: IExpressResponse, next: NextFunction): void => {
     const token = request.header('Authorization')?.replace('Bearer ', '');

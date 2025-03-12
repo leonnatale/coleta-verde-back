@@ -15,6 +15,7 @@ const app = express();
 
 passport.use(jwtStrategy);
 app.use(passport.initialize());
+app.use(express.json());
 
 const responseMiddleware = (request: Request, response: Response, next: NextFunction) => {
     const self = response;
@@ -45,7 +46,7 @@ app.listen(port, '0.0.0.0', async () => {
     for (const controllerNamespace of controllers) {
         const controllerFiles = readdirSync(path.join(__dirname, 'controllers', controllerNamespace)).filter(file => file.endsWith('.ts'));
         for (const controllerFileName of controllerFiles) {
-            const controllerImport: IController = (await import(path.join(__dirname, 'controllers', controllerNamespace, controllerFileName))).default;
+            const controllerImport: IController = (await import(path.join(__dirname, 'controllers', controllerNamespace, controllerFileName))).controller;
             const urlPath = `/${controllerNamespace}${controllerImport.path}`;
             const method = controllerImport.method;
             app[method.toLowerCase() as keyof typeof app](
