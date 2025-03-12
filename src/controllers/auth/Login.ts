@@ -1,4 +1,4 @@
-import { IAuthLogin } from "@datatypes/auth/Login";
+import { IAuthLogin } from "@datatypes/Auth";
 import { IController, IExpressRequest, IExpressResponse } from "@datatypes/Controllers";
 
 async function main(request: IExpressRequest, response: IExpressResponse) {

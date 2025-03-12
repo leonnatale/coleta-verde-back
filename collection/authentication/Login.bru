@@ -6,6 +6,13 @@ meta {
 
 post {
   url: {{endpoint}}/auth/login
-  body: none
+  body: json
   auth: none
+}
+
+body:json {
+  {
+    "name": "taltaltal",
+    "password": "taltaltal"
+  }
 }
