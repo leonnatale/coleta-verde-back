@@ -46,7 +46,7 @@ export const verifyTokenMiddleware = async (
     request: Request,
     response: IExpressResponse,
     next: NextFunction,
-    requiredRole?: EColetaRole
+    requiredRole?: EColetaRole | EColetaRole[]
 ): Promise<void> => {
     const token = request.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -57,7 +57,8 @@ export const verifyTokenMiddleware = async (
     try {
         const user = verify(token, saltKey) as IColetaUser;
         user.role = (await getUserById(user.id))?.role ?? user.role;
-        if (!requiredRole || user.role == requiredRole) {
+        const isArray = Array.isArray(requiredRole);
+        if (!requiredRole || (!isArray && user.role == requiredRole) || (isArray && requiredRole.includes(user.role))) {
             request.user = user;
             next();
         }

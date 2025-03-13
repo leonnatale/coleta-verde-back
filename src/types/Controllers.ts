@@ -10,7 +10,7 @@ export interface IController {
     path: string,
     method: TMethod,
     authenticationRequired: boolean,
-    requiredRole?: EColetaRole
+    requiredRole?: EColetaRole | EColetaRole[]
 }
 
 export interface IResponse<T> {
