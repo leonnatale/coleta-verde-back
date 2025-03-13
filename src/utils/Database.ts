@@ -51,8 +51,12 @@ export async function registerUser(data: IAuthRegister): Promise<IColetaUser | s
     const existingUser = await getUserByName(data.name);
     if (existingUser) return 'User already exists';
 
-    const isValidPassword = data.password.length >= 8 && data.password.length <= 20;
-    if (!isValidPassword) return 'Password must be between 8 and 20 characters';
+    const limit = {
+        min: 8,
+        max: 20
+    };
+    const isValidPassword = data.password.length >= limit.min && data.password.length <= limit.max;
+    if (!isValidPassword) return `Password must be between ${limit.min} and ${limit.max} characters`;
 
     const password = encryptPassword(data.password);
     const userData = {

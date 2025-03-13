@@ -1,0 +1,15 @@
+meta {
+  name: Get current user
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{endpoint}}/user/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: 
+}

@@ -1,13 +1,13 @@
 import { IController, IExpressResponse, IResponse } from '@datatypes/Controllers';
 import { jwtStrategy, verifyTokenMiddleware } from '@utils/Passport';
 import Logger from '@utils/Logger';
+import { openMongoConnection } from '@utils/Database';
 import dotenv from 'dotenv';
 import express, { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
 import { bold } from 'chalk';
 import { readdirSync } from 'fs';
 import path from 'path';
-import { openMongoConnection } from '@utils/Database';
 
 dotenv.config();
 const port = parseInt(process.env['PORT'] ?? '8080');
@@ -44,6 +44,7 @@ const methodColor = {
 app.listen(port, '0.0.0.0', async () => {
     await openMongoConnection();
     for (const controllerNamespace of controllers) {
+        Logger.log(`Mapping controller ${bold.yellowBright(controllerNamespace)}`);
         const controllerFiles = readdirSync(path.join(__dirname, 'controllers', controllerNamespace)).filter(file => file.endsWith('.ts'));
         for (const controllerFileName of controllerFiles) {
             const controllerImport: IController = (await import(path.join(__dirname, 'controllers', controllerNamespace, controllerFileName))).controller;
@@ -52,8 +53,17 @@ app.listen(port, '0.0.0.0', async () => {
             app[method.toLowerCase() as keyof typeof app](
                 urlPath,
                 ...(controllerImport.authenticationRequired 
-                    ? [ verifyTokenMiddleware, responseMiddleware, controllerImport.main ] 
-                    : [ responseMiddleware, controllerImport.main ]
+                    ?
+                    [
+                        (request: Request, response: IExpressResponse, next: NextFunction) => verifyTokenMiddleware(request, response, next, controllerImport.requiredRole),
+                        responseMiddleware,
+                        controllerImport.main
+                    ] 
+                    :
+                    [
+                        responseMiddleware,
+                        controllerImport.main
+                    ]
                 )
             );
             Logger.log(`Mapped ${bold.keyword(methodColor[method])(method)} ${bold(urlPath)}`);
