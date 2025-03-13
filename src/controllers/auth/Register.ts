@@ -1,9 +1,18 @@
 import { IAuthRegister } from "@datatypes/Auth";
 import { IController, IExpressRequest, IExpressResponse } from "@datatypes/Controllers";
+import { IColetaUser } from "@datatypes/Database";
+import { registerUser } from "@utils/Database";
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
     const body = request.body as IAuthRegister;
-    
+
+    const user: IColetaUser | string = await registerUser(body);
+    if (typeof user === 'string') {
+        response.status(400).json({ message: user });
+        return;
+    }
+
+    response.json({ data: user });
 }
 
 export const controller: IController = {

@@ -1,4 +1,4 @@
-import { Document } from 'mongodb';
+import { Document, ObjectId } from 'mongodb';
 
 /* Enums */
 export enum EColetaRole {
@@ -10,6 +10,7 @@ export enum EColetaRole {
 
 /* Interfaces */
 export interface IColetaUser extends Document {
+    _id: ObjectId,
     id: number,
     name: string,
     password?: string,

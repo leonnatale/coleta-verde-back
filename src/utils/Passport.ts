@@ -44,7 +44,7 @@ export const comparePassword = (value: string, hash: string): boolean => compare
 export const verifyTokenMiddleware = (request: Request, response: IExpressResponse, next: NextFunction): void => {
     const token = request.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
-        response.status(401);
+        response.status(401).json({ message: 'No token provided' });
         return;
     }
 
@@ -53,6 +53,6 @@ export const verifyTokenMiddleware = (request: Request, response: IExpressRespon
         request.user = user;
         next();
     } catch (error) {
-        response.status(401);
+        response.status(401).json({ message: 'Invalid token' });
     }
 };

@@ -27,7 +27,7 @@ const responseMiddleware = (request: Request, response: Response, next: NextFunc
     }
 
     response.status = (statusCode: number) => {
-        return sendStatus.call(self, statusCode).json({ message: response.statusMessage });
+        return sendStatus.call(self, statusCode);
     }
 
     next();
