@@ -11,9 +11,12 @@ function callLog(type: string, hexColor: number, ...args: any[]) {
 
 export default {
     log(...args: any[]) {
-        callLog('LOG', 0xffffff, ...args);
+        callLog('INFO', 0xaaffff, ...args);
     },
     warn(...args: any[]) {
         callLog('WARN', 0xffffaa, ...args);
+    },
+    error(...args: any[]) {
+        callLog('ERROR', 0xffaaaa, ...args);
     }
 };

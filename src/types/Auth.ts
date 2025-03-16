@@ -1,11 +1,16 @@
+/* Types */
+type TAuthAccountType = 'user' | 'employee' | 'enterprise';
+
 /* Interfaces */
 export interface IAuthLogin {
-    name: string,
+    email: string,
     password: string
 }
 
 export interface IAuthRegister {
+    email: string,
     name: string,
     password: string,
-    isEnterprise: boolean
+    accountType: TAuthAccountType,
+    cnpj?: string
 }

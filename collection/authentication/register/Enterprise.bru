@@ -1,0 +1,21 @@
+meta {
+  name: Enterprise
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{endpoint}}/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "enterprise@enterprise.com",
+    "name": "Enterprise's Name",
+    "password": "EnterprisePassword",
+    "accountType": "enterprise",
+    "cnpj": "00.000.000/0000-00"
+  }
+}

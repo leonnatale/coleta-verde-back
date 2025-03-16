@@ -55,8 +55,14 @@ export const verifyTokenMiddleware = async (
     }
 
     try {
-        const user = verify(token, saltKey) as IColetaUser;
-        user.role = (await getUserById(user.id))?.role ?? user.role;
+        const tokenData = verify(token, saltKey) as IColetaUser;
+        const user = await getUserById(tokenData.id);
+
+        if (!user) {
+            response.status(401).json({ message: 'User not found' });
+            return;
+        }
+        
         const isArray = Array.isArray(requiredRole);
         if (!requiredRole || (!isArray && user.role == requiredRole) || (isArray && requiredRole.includes(user.role))) {
             request.user = user;

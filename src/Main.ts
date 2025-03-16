@@ -8,6 +8,7 @@ import passport from 'passport';
 import { bold } from 'chalk';
 import { readdirSync } from 'fs';
 import path from 'path';
+import { initializeMailer } from '@utils/Mailer';
 
 dotenv.config();
 const port = parseInt(process.env['PORT'] ?? '8080');
@@ -43,6 +44,7 @@ const methodColor = {
 
 app.listen(port, '0.0.0.0', async () => {
     await openMongoConnection();
+    initializeMailer();
     for (const controllerNamespace of controllers) {
         Logger.log(`Mapping controller ${bold.yellowBright(controllerNamespace)}`);
         const controllerFiles = readdirSync(path.join(__dirname, 'controllers', controllerNamespace)).filter(file => file.endsWith('.ts'));
@@ -69,5 +71,5 @@ app.listen(port, '0.0.0.0', async () => {
             Logger.log(`Mapped ${bold.keyword(methodColor[method])(method)} ${bold(urlPath)}`);
         }
     }
-    Logger.log(`Running on port ${bold(port)}`);
+    Logger.log(`${bold.cyan('HTTP server')} running on port ${bold(port)}`);
 });
