@@ -1,7 +1,8 @@
-import { IAuthRegister } from "@datatypes/Auth";
-import { IController, IExpressRequest, IExpressResponse } from "@datatypes/Controllers";
-import { IColetaUser } from "@datatypes/Database";
-import { registerUser } from "@utils/Database";
+import { IAuthRegister } from '@datatypes/Auth';
+import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
+import { IColetaUser } from '@datatypes/Database';
+import { registerUser } from '@utils/Database';
+import { sendEmailVerification } from '@utils/Mailer';
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
     const body = request.body as IAuthRegister;
@@ -11,6 +12,8 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
         response.status(400).json({ message: user });
         return;
     }
+
+    sendEmailVerification(user.id);
 
     response.json({ data: user });
 }

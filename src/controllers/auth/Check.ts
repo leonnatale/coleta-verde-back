@@ -1,4 +1,4 @@
-import { IController, IExpressRequest, IExpressResponse } from "@datatypes/Controllers";
+import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
     response.json({});

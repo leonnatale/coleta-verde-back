@@ -1,8 +1,8 @@
-import { IAuthLogin } from "@datatypes/Auth";
-import { IController, IExpressRequest, IExpressResponse } from "@datatypes/Controllers";
-import { IColetaUser } from "@datatypes/Database";
-import { login } from "@utils/Database";
-import { generateToken } from "@utils/Passport";
+import { IAuthLogin } from '@datatypes/Auth';
+import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
+import { IColetaUser } from '@datatypes/Database';
+import { login } from '@utils/Database';
+import { generateToken } from '@utils/Passport';
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
     const body = request.body as IAuthLogin;

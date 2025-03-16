@@ -7,7 +7,7 @@ import { IExpressResponse } from '@datatypes/Controllers';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { bold } from 'chalk';
 import dotenv from 'dotenv';
-import { getUserById, login } from './Database';
+import { getUserById } from './Database';
 
 dotenv.config();
 

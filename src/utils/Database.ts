@@ -1,4 +1,4 @@
-import { Db, MongoClient } from 'mongodb';
+import { Db, MongoClient, ObjectId } from 'mongodb';
 import { bold } from 'chalk';
 import Logger from './Logger';
 import { IAuthLogin, IAuthRegister } from '@datatypes/Auth';
@@ -62,6 +62,11 @@ async function getUserByCNPJ(cnpj: string): Promise<IColetaUser | null> {
     return user;
 }
 
+export async function getUserByObjectId(objectId: string): Promise<IColetaUser | null> {
+    const user = await currentConnection.collection<IColetaUser>('User').findOne({ _id: new ObjectId(objectId) });
+    return user;
+}
+
 export async function registerUser(data: IAuthRegister): Promise<IColetaUser | string> {
     const requiredFields = showRequiredFields<IAuthRegister>(data, [ 'email', 'name', 'password', 'accountType' ]);
     if (requiredFields) return requiredFields;
@@ -120,7 +125,17 @@ export async function registerUser(data: IAuthRegister): Promise<IColetaUser | s
 
     await currentConnection.collection('User').insertOne(userData);
     
-    return hideAttributes(userData, [ 'password' ]);
+    return hideAttributes(userData, [ 'password', '_id' ]);
+}
+
+export async function verifyEmail(objectId: string): Promise<IColetaUser | null> {
+    const user = await getUserByObjectId(objectId);
+    if (!user) return null;
+    if (user.verified) return null;
+
+    await currentConnection.collection('User').updateOne({ _id: new ObjectId(objectId) }, { $set: { verified: true } });
+
+    return hideAttributes(user, [ 'password', '_id' ]);
 }
 
 export async function login(data: IAuthLogin): Promise<IColetaUser | string> {

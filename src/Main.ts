@@ -44,7 +44,7 @@ const methodColor = {
 
 app.listen(port, '0.0.0.0', async () => {
     await openMongoConnection();
-    initializeMailer();
+    await initializeMailer();
     for (const controllerNamespace of controllers) {
         Logger.log(`Mapping controller ${bold.yellowBright(controllerNamespace)}`);
         const controllerFiles = readdirSync(path.join(__dirname, 'controllers', controllerNamespace)).filter(file => file.endsWith('.ts'));
