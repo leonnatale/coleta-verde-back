@@ -8,7 +8,9 @@ const OAuth2 = google.auth.OAuth2;
 
 let mailer: nodemailer.Transporter<SMTPPool.SentMessageInfo, SMTPPool.Options>;
 
+const refreshToken = process.env['GMAIL_REFRESH_TOKEN'];
 export async function initializeMailer(): Promise<void> {
+    if (!refreshToken) return;
     const gmailClient = new OAuth2(
         process.env['GMAIL_CLIENT_ID'],
         process.env['GMAIL_CLIENT_SECRET'],
@@ -16,7 +18,7 @@ export async function initializeMailer(): Promise<void> {
     );
 
     gmailClient.setCredentials({
-        refresh_token: process.env['GMAIL_REFRESH_TOKEN']
+        refresh_token: refreshToken
     });
 
     const accessToken: string = await new Promise((resolve, reject) => {
@@ -46,6 +48,7 @@ export async function initializeMailer(): Promise<void> {
 }
 
 async function sendMail(to: string, subject: string, text: string): Promise<void> {
+    if (!refreshToken) return;
     try {
         await mailer.sendMail({
             from: `Coleta Verde <${process.env['GMAIL_EMAIL']}>`,

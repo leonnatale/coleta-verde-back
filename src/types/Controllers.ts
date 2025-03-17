@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { EColetaRole, IColetaUser } from './Database';
 
 /* Types */
-type TMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+export type TMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 /* Interfaces */
 export interface IController {

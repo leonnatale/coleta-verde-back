@@ -11,6 +11,10 @@ import { getUserById } from './Database';
 
 dotenv.config();
 
+let rateLimit: { [key: string]: number } = {};
+
+setInterval(() => rateLimit = {}, 60_000);
+
 const saltKey = process.env['SALT_KEY'] ?? 'salt';
 
 if (saltKey === 'salt') Logger.warn('No salt key provided, using default.');
@@ -42,6 +46,25 @@ export const encryptPassword = (value: string): string => hashSync(value, bcrypt
 
 export const comparePassword = (value: string, hash: string): boolean => compareSync(value, hash);
 
+export const rateLimitMiddleware = async (
+    request: Request,
+    response: IExpressResponse,
+    next: NextFunction,
+) => {
+    const clientIp = request.ip!;
+    if (rateLimit[clientIp] === undefined) rateLimit[clientIp] = 50;
+
+    response.setHeader('X-Requests-Limit', rateLimit[clientIp]);
+
+    if (rateLimit[clientIp] <= 0) {
+        response.status(429).json({ message: 'Too many requests' });
+        return;
+    }
+
+    rateLimit[clientIp]--;
+    next();
+}
+
 export const verifyTokenMiddleware = async (
     request: Request,
     response: IExpressResponse,
@@ -53,11 +76,11 @@ export const verifyTokenMiddleware = async (
         response.status(401).json({ message: 'No token provided' });
         return;
     }
-
+    
     try {
         const tokenData = verify(token, saltKey) as IColetaUser;
         const user = await getUserById(tokenData.id);
-
+        
         if (!user) {
             response.status(401).json({ message: 'User not found' });
             return;

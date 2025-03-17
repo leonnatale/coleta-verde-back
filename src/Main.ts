@@ -1,5 +1,5 @@
 import { IController, IExpressResponse, IResponse } from '@datatypes/Controllers';
-import { jwtStrategy, verifyTokenMiddleware } from '@utils/Passport';
+import { jwtStrategy, rateLimitMiddleware, verifyTokenMiddleware } from '@utils/Passport';
 import Logger from '@utils/Logger';
 import { openMongoConnection } from '@utils/Database';
 import dotenv from 'dotenv';
@@ -17,6 +17,7 @@ const app = express();
 passport.use(jwtStrategy);
 app.use(passport.initialize());
 app.use(express.json());
+app.use(rateLimitMiddleware);
 
 const responseMiddleware = (request: Request, response: Response, next: NextFunction) => {
     const self = response;
@@ -60,7 +61,7 @@ app.listen(port, '0.0.0.0', async () => {
                         (request: Request, response: IExpressResponse, next: NextFunction) => verifyTokenMiddleware(request, response, next, controllerImport.requiredRole),
                         responseMiddleware,
                         controllerImport.main
-                    ] 
+                    ]
                     :
                     [
                         responseMiddleware,
