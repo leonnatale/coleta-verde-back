@@ -1,0 +1,20 @@
+meta {
+  name: Employee
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{endpoint}}/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "employee@employee.com",
+    "name": "Employee's Name",
+    "password": "EmployeePassword",
+    "accountType": "employee"
+  }
+}

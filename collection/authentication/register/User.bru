@@ -1,0 +1,20 @@
+meta {
+  name: User
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{endpoint}}/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "user@user.com",
+    "name": "Username",
+    "password": "UserPassword",
+    "accountType": "user"
+  }
+}

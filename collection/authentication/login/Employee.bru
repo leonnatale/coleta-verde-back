@@ -1,0 +1,18 @@
+meta {
+  name: Employee
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{endpoint}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "employee@employee.com",
+    "password": "EmployeePassword"
+  }
+}

@@ -2,7 +2,6 @@ import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import Logger from './Logger';
 import SMTPPool from 'nodemailer/lib/smtp-pool';
-import { IColetaUser } from '@datatypes/Database';
 import { getUserById } from './Database';
 
 const OAuth2 = google.auth.OAuth2;
@@ -77,7 +76,7 @@ export async function sendEmailVerification(userID: number): Promise<void> {
                         </tr>
                         <tr>
                             <td style='color: #333333; font-size: 16px; padding: 20px;'>
-                                Olá ${user.name}, para confirmar seu cadastro, clique no link abaixo:
+                                Olá <b>${user.name}</b>, para confirmar seu cadastro, clique no botão abaixo:
                             </td>
                         </tr>
                         <tr>
