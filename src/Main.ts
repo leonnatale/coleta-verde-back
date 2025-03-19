@@ -9,6 +9,7 @@ import { bold } from 'chalk';
 import { readdirSync } from 'fs';
 import path from 'path';
 import { initializeMailer } from '@utils/Mailer';
+import cors from 'cors';
 
 dotenv.config();
 const port = parseInt(process.env['PORT'] ?? '8080');
@@ -17,9 +18,10 @@ const app = express();
 passport.use(jwtStrategy);
 app.use(passport.initialize());
 app.use(express.json());
+app.use(cors({ origin: '*' }));
 app.use(rateLimitMiddleware);
 
-const responseMiddleware = (request: Request, response: Response, next: NextFunction) => {
+const responseMiddleware = (_request: Request, response: Response, next: NextFunction) => {
     const self = response;
     const sendJson = response.json;
     const sendStatus = response.status;

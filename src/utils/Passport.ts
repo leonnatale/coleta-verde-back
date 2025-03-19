@@ -54,7 +54,7 @@ export const rateLimitMiddleware = async (
     const clientIp = request.ip!;
     if (rateLimit[clientIp] === undefined) rateLimit[clientIp] = 50;
 
-    response.setHeader('X-Requests-Limit', rateLimit[clientIp]);
+    response.setHeader('X-Requests-Remaining', rateLimit[clientIp]);
 
     if (rateLimit[clientIp] <= 0) {
         response.status(429).json({ message: 'Too many requests' });
