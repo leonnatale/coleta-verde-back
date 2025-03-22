@@ -12,7 +12,7 @@
     <script>
         const EventSource = window.EventSourcePolyfill;
         const serverURL = 'http://localhost:8080';
-        const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2RlMDY3NzRlNDE2ZDQ1NjMxNWFjNDMiLCJpZCI6MSwiZW1haWwiOiJ1c2VyQHVzZXIuY29tIiwidmVyaWZpZWQiOmZhbHNlLCJuYW1lIjoiVXNlcm5hbWUiLCJyb2xlIjowLCJhZGRyZXNzZXMiOltdLCJjcmVhdGVkQXQiOjE3NDI2MDM4OTU5MzMsImlhdCI6MTc0MjYwMzkwMCwiZXhwIjoxNzQyNjkwMzAwfQ.qMamy6oXzLXp2kzyYhBq5gAfKGQoHkFUPU7jMWFBN7Y';
+        const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2RlMWVhNjhhZTIxMGJmZDBhZmJiOGIiLCJpZCI6MSwiZW1haWwiOiJ1c2VyQHVzZXIuY29tIiwidmVyaWZpZWQiOmZhbHNlLCJuYW1lIjoiVXNlcm5hbWUiLCJyb2xlIjowLCJhZGRyZXNzZXMiOltdLCJjcmVhdGVkQXQiOjE3NDI2MTAwODY3MjYsImlhdCI6MTc0MjYxMDA5MSwiZXhwIjoxNzQyNjk2NDkxfQ.TzXb79Amxn4yV-8tHF_WoKTnJLZK_s1sWby7GN20uGI';
         const stream = new EventSource(
             serverURL + '/sse/chat',
             {

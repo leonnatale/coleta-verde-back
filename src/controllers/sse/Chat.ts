@@ -1,15 +1,14 @@
 import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
-import { fetchMongoConnection } from '@utils/Database';
-import { SSE } from '@utils/SSE';
-
-const mongo = fetchMongoConnection();
+import { SSE, SSEEmitter } from '@utils/SSE';
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
     const stream = new SSE(response);
-    const watcher = mongo.collection('User').watch();
+    const chatEvent = `message:${request.user!.id}`;
 
-    watcher.on('change', (data) => {
-        stream.send('change', data);
+    stream.on('connection', () => stream.send('welcome', 'connected'));
+
+    SSEEmitter.on(chatEvent, (messageData: any) => {
+        stream.send('message', messageData);
     });
 }
 

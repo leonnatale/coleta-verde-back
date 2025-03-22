@@ -1,5 +1,7 @@
 import { IExpressResponse } from "@datatypes/Controllers";
-import { eventData } from "@datatypes/SSE";
+import EventEmitter from "events";
+
+export const SSEEmitter = new EventEmitter();
 
 export class SSE {
     private response: IExpressResponse;
