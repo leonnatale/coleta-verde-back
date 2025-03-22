@@ -28,3 +28,10 @@ export interface IColetaUser extends Document {
     createdAt: number,
     cnpj?: string
 }
+
+export interface IChatMessage extends Document {
+    _id: ObjectId,
+    userId: number,
+    text: string,
+    sentAt: number
+}

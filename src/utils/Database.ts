@@ -10,6 +10,8 @@ const mongoDatabaseName = process.env['MONGODB_DATABASE_NAME'] ?? 'coletaverde';
 
 let currentConnection: Db;
 
+export const fetchMongoConnection = (): Db => currentConnection;
+
 export async function openMongoConnection(): Promise<Db> {
     if (currentConnection) return currentConnection;
     const mongoClient = new MongoClient(mongoUri);

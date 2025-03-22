@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE exemplo</title>
+</head>
+
+<body>
+    <script src="./EventSourcePolyfill.js"></script>
+    <script>
+        const EventSource = window.EventSourcePolyfill;
+        const serverURL = 'http://localhost:8080';
+        const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2RlMDY3NzRlNDE2ZDQ1NjMxNWFjNDMiLCJpZCI6MSwiZW1haWwiOiJ1c2VyQHVzZXIuY29tIiwidmVyaWZpZWQiOmZhbHNlLCJuYW1lIjoiVXNlcm5hbWUiLCJyb2xlIjowLCJhZGRyZXNzZXMiOltdLCJjcmVhdGVkQXQiOjE3NDI2MDM4OTU5MzMsImlhdCI6MTc0MjYwMzkwMCwiZXhwIjoxNzQyNjkwMzAwfQ.qMamy6oXzLXp2kzyYhBq5gAfKGQoHkFUPU7jMWFBN7Y';
+        const stream = new EventSource(
+            serverURL + '/sse/chat',
+            {
+                headers:
+                {
+                    Authorization: 'Bearer ' + jwt
+                }
+            }
+        );
+
+        stream.onmessage = (message) => console.log(JSON.parse(message.data));
+    </script>
+</body>
+
+</html>

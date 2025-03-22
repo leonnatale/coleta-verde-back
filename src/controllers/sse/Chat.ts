@@ -1,20 +1,16 @@
 import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
+import { fetchMongoConnection } from '@utils/Database';
+import { SSE } from '@utils/SSE';
+
+const mongo = fetchMongoConnection();
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
-    response.set({
-        'Cache-Control': 'no-cache',
-        'Content-Type': 'text/event-stream',
-        'Access-Control-Allow-Origin': '*',
-        Connection: 'keep-alive'
-    });
-    response.flushHeaders();
+    const stream = new SSE(response);
+    const watcher = mongo.collection('User').watch();
 
-    setInterval(() => {
-        response.write(`data: ${JSON.stringify({
-            data: 'test'
-        })}\n\n`);
-    }, 5_000)
-    request.on('close', () => response.end());
+    watcher.on('change', (data) => {
+        stream.send('change', data);
+    });
 }
 
 export const controller: IController = {
