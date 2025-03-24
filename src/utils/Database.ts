@@ -3,7 +3,8 @@ import { bold } from 'chalk';
 import Logger from './Logger';
 import { IAuthLogin, IAuthRegister } from '@datatypes/Auth';
 import { comparePassword, encryptPassword } from './Passport';
-import { EColetaRole, IColetaAddress, IColetaUser } from '@datatypes/Database';
+import { EColetaRole, IChat, IChatMessage, IColetaAddress, IColetaUser } from '@datatypes/Database';
+import { IMessageData } from '@datatypes/Chat';
 
 const mongoUri = process.env['MONGODB_URI_CONNECTION'] ?? 'mongodb://localhost:27017/';
 const mongoDatabaseName = process.env['MONGODB_DATABASE_NAME'] ?? 'coletaverde';
@@ -50,7 +51,7 @@ export async function getUserById(id: number): Promise<IColetaUser | null> {
 }
 
 async function getLastUserId(): Promise<number> {
-    const lastUser = await currentConnection.collection('User').find().sort({ id: -1 }).limit(1).next();
+    const lastUser = await currentConnection.collection<IColetaUser>('User').find().sort({ id: -1 }).limit(1).next();
     return lastUser ? (lastUser.id ?? 0) : 0;
 }
 
@@ -112,16 +113,17 @@ export async function registerUser(data: IAuthRegister): Promise<IColetaUser | s
         if (existingUserCNPJ) return 'CNPJ already in use';
     }
 
-    const userData = {
+    const userData: IColetaUser = {
         id: (await getLastUserId()) + 1,
         email: data.email,
         verified: false,
         name: data.name,
+        description: '',
         password,
         role: roles[data.accountType],
-        addresses: [] as IColetaAddress[],
+        addresses: [],
         createdAt: Date.now()
-    } as IColetaUser;
+    };
 
     if (data.accountType === 'enterprise') userData.cnpj = data.cnpj;
 
@@ -153,4 +155,77 @@ export async function login(data: IAuthLogin): Promise<IColetaUser | string> {
     if (!isValidPassword) return 'Invalid password';
 
     return hideAttributes(user, [ 'password' ]);
+}
+
+async function getLasChatId(): Promise<number> {
+    const lastChat = await currentConnection.collection<IColetaUser>('Chat').find().sort({ id: -1 }).limit(1).next();
+    return lastChat ? (lastChat.id ?? 0) : 0;
+}
+
+export async function createChat(
+    from: number,
+    to: number
+): Promise<IChat> {
+    const chat: IChat = {
+        id: (await getLasChatId()) + 1,
+        owners: [ from, to ],
+        data: []
+    };
+
+    await currentConnection.collection<IChat>('Chat').insertOne(chat);
+
+    return chat;
+}
+
+export async function getChatIdFromOwners(
+    from: number,
+    to: number
+): Promise<number | null> {
+    const chat = await currentConnection.collection<IChat>('Chat').findOne({
+        $where() {
+            return from in this.owners && to in this.owners;
+        }
+    });
+
+    return chat?.id ?? null;
+}
+
+export async function getLastMessageIdFromChat(chatId: number): Promise<number> {
+    const chat = await currentConnection.collection<IChat>('Chat').findOne({ id: chatId });
+    return chat?.data.length ?? 0;
+}
+
+export async function getMessagesFromChat(chatId: number): Promise<IChatMessage[] | null> {
+    const chat = await currentConnection.collection<IChat>('Chat').findOne({ id: chatId });
+    return chat ? chat.data : null;
+}
+
+
+export async function sendMessage(data: IMessageData): Promise<string | IChatMessage> {
+    const requiredFields = showRequiredFields(data, [ 'to', 'message' ]);
+    if (requiredFields) return requiredFields;
+
+    if (data.from == data.to) return 'Can\'t message to yourself';
+
+    const userExist = await getUserById(data.to);
+
+    if (!userExist) return 'User not found';
+
+    const chatId = await getChatIdFromOwners(data.from, data.to) ?? (await createChat(data.from, data.to)).id;
+
+    if (!chatId) return 'Couldn\'t find or create the chat.';
+
+    const message: IChatMessage = {
+        id: (await getLastMessageIdFromChat(chatId)) + 1,
+        authorId: data.from,
+        text: data.message,
+        sentAt: Date.now()
+    };
+    
+    await currentConnection.collection<IChat>('Chat').updateOne(
+        { id: chatId },
+        { $push: { data: message as any } }
+    );
+
+    return message;
 }

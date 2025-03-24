@@ -51,10 +51,17 @@ export const rateLimitMiddleware = async (
     response: IExpressResponse,
     next: NextFunction,
 ) => {
+
+    if (request.path.includes('/sse/')) {
+        response.setHeader('X-Remaining-Requests', 'You\'re using SSE');
+        next();
+        return;
+    }
+
     const clientIp = request.ip!;
     if (rateLimit[clientIp] === undefined) rateLimit[clientIp] = 50;
 
-    response.setHeader('X-Requests-Remaining', rateLimit[clientIp]);
+    response.setHeader('X-Remaining-Requests', rateLimit[clientIp]);
 
     if (rateLimit[clientIp] <= 0) {
         response.status(429).json({ message: 'Too many requests' });

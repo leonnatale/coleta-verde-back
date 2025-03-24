@@ -1,5 +1,5 @@
 /* Interfaces */
-export interface eventData<T> {
+export interface IEventData<T> {
     type: string,
     data: T
 }

@@ -13,17 +13,20 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
     const user: IColetaUser | null = await getUserById(id);
 
     if (!user) {
-        response.status(404).json({ message: `User with id '${id}' doesn't exists` });
+        response.status(404).json({ message: `User with id '${id}' doesn't exist` });
         return;
     }
 
-    response.json({ data: hideAttributes(user, [ 'password', '_id' ]) });
+    let attributesToHide = [ 'password', '_id', 'addresses' ];
+
+    if (request.user!.role === EColetaRole.admin) attributesToHide = [];
+
+    response.json({ data: hideAttributes(user, attributesToHide) });
 }
 
 export const controller: IController = {
     main,
     path: '/id/:id',
     method: 'GET',
-    authenticationRequired: true,
-    requiredRole: EColetaRole.admin
+    authenticationRequired: true
 }

@@ -16,7 +16,7 @@ export interface IColetaAddress {
 }
 
 export interface IColetaUser extends Document {
-    _id: ObjectId,
+    _id?: ObjectId,
     id: number,
     email: string,
     verified: boolean,
@@ -29,9 +29,16 @@ export interface IColetaUser extends Document {
     cnpj?: string
 }
 
-export interface IChatMessage extends Document {
-    _id: ObjectId,
-    userId: number,
+export interface IChat extends Document {
+    _id?: ObjectId,
+    id: number,
+    owners: number[],
+    data: IChatMessage[]
+}
+
+export interface IChatMessage {
+    id: number,
+    authorId: number,
     text: string,
     sentAt: number
 }

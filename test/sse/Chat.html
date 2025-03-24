@@ -4,26 +4,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SSE exemplo</title>
+    <title>Chat SSE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #chat {
+            width: 300px;
+            height: 400px;
+            border: 1px solid #ccc;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        input,
+        button {
+            width: 300px;
+            padding: 10px;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="chat"></div>
+    <input type="number" id="to" placeholder="ID do destinatário">
+    <input type="text" id="message" placeholder="Digite sua mensagem...">
+    <button onclick="sendMessage()">Enviar</button>
+
     <script src="./EventSourcePolyfill.js"></script>
     <script>
         const EventSource = window.EventSourcePolyfill;
         const serverURL = 'http://localhost:8080';
-        const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2RlMWVhNjhhZTIxMGJmZDBhZmJiOGIiLCJpZCI6MSwiZW1haWwiOiJ1c2VyQHVzZXIuY29tIiwidmVyaWZpZWQiOmZhbHNlLCJuYW1lIjoiVXNlcm5hbWUiLCJyb2xlIjowLCJhZGRyZXNzZXMiOltdLCJjcmVhdGVkQXQiOjE3NDI2MTAwODY3MjYsImlhdCI6MTc0MjYxMDA5MSwiZXhwIjoxNzQyNjk2NDkxfQ.TzXb79Amxn4yV-8tHF_WoKTnJLZK_s1sWby7GN20uGI';
-        const stream = new EventSource(
-            serverURL + '/sse/chat',
-            {
-                headers:
-                {
-                    Authorization: 'Bearer ' + jwt
-                }
-            }
-        );
+        const jwt = prompt("Digite seu JWT:");
 
-        stream.onmessage = (message) => console.log(JSON.parse(message.data));
+        if (!jwt) {
+            alert("JWT é necessário!");
+            window.location.reload();
+        }
+
+        let currentUser = null;
+        const userCache = new Map();
+
+        async function fetchCurrentUser() {
+            try {
+                const res = await fetch(serverURL + "/user/me", {
+                    headers: { 'Authorization': 'Bearer ' + jwt }
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.message);
+                currentUser = json.data;
+            } catch (error) {
+                alert("Erro ao obter usuário: " + error.message);
+            }
+        }
+
+        async function getUserNameById(userId) {
+            if (userCache.has(userId)) return userCache.get(userId);
+            try {
+                const res = await fetch(serverURL + `/user/id/${userId}`, {
+                    headers: { 'Authorization': 'Bearer ' + jwt }
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.message);
+                const name = json.data.name;
+                userCache.set(userId, name);
+                return name;
+            } catch (error) {
+                alert("Erro ao obter nome do usuário: " + error.message);
+                return "Desconhecido";
+            }
+        }
+
+        function formatTimestamp(timestamp) {
+            return new Date(timestamp).toLocaleTimeString();
+        }
+
+        async function appendMessage(authorId, text, sentAt) {
+            const name = await getUserNameById(authorId);
+            chatDiv.innerHTML += `<p><b>${name} (${authorId}):</b> ${text} <i>(${formatTimestamp(sentAt)})</i></p>`;
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        async function loadChatMessages(userId) {
+            if (!currentUser) return;
+            if (userId === currentUser.id) {
+                alert("Não é possível buscar mensagens para você mesmo.");
+                return;
+            }
+            try {
+                chatDiv.innerHTML = "";
+                const res = await fetch(serverURL + `/chat/${userId}`, {
+                    headers: { 'Authorization': 'Bearer ' + jwt }
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.message);
+                for (const msg of json.data) {
+                    await appendMessage(msg.authorId, msg.text, msg.sentAt);
+                }
+            } catch (error) {
+                alert("Erro ao carregar mensagens: " + error.message);
+            }
+        }
+
+        const chatDiv = document.getElementById("chat");
+        const toInput = document.getElementById("to");
+        const messageInput = document.getElementById("message");
+
+        toInput.addEventListener("input", async () => {
+            const to = parseInt(toInput.value.trim(), 10);
+            if (!isNaN(to)) await loadChatMessages(to);
+        });
+
+        const stream = new EventSource(serverURL + '/sse/chat', {
+            headers: { Authorization: 'Bearer ' + jwt }
+        });
+
+        stream.onmessage = async (message) => {
+            try {
+                let event = JSON.parse(message.data);
+                if (event.type === "welcome") {
+                    chatDiv.innerHTML += `<p><i>${event.data}</i></p>`;
+                } else if (event.type === "new message") {
+                    if (!toInput.value.trim()) {
+                        toInput.value = event.data.authorId;
+                        await loadChatMessages(event.data.authorId);
+                    } else {
+                        await appendMessage(event.data.authorId, event.data.text, event.data.sentAt);
+                    }
+                }
+            } catch (error) {
+                alert("Erro ao processar mensagem SSE: " + error.message);
+            }
+        };
+
+        async function sendMessage() {
+            const to = parseInt(toInput.value.trim(), 10);
+            const text = messageInput.value.trim();
+            if (!text || isNaN(to) || !currentUser) return;
+            try {
+                await fetch(serverURL + '/chat/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    },
+                    body: JSON.stringify({ to, message: text })
+                });
+                await appendMessage(currentUser.id, text, Date.now());
+                messageInput.value = "";
+            } catch (error) {
+                alert("Erro ao enviar mensagem: " + error.message);
+            }
+        }
+
+        fetchCurrentUser();
     </script>
 </body>
 
