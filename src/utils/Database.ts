@@ -3,7 +3,7 @@ import { bold } from 'chalk';
 import Logger from './Logger';
 import { IAuthLogin, IAuthRegister } from '@datatypes/Auth';
 import { comparePassword, encryptPassword } from './Passport';
-import { EColetaRole, IChat, IChatMessage, IColetaAddress, IColetaUser } from '@datatypes/Database';
+import { EColetaRole, IChat, IChatMessage, IColetaUser } from '@datatypes/Database';
 import { IMessageData } from '@datatypes/Chat';
 
 const mongoUri = process.env['MONGODB_URI_CONNECTION'] ?? 'mongodb://localhost:27017/';
@@ -12,6 +12,16 @@ const mongoDatabaseName = process.env['MONGODB_DATABASE_NAME'] ?? 'coletaverde';
 let currentConnection: Db;
 
 export const fetchMongoConnection = (): Db => currentConnection;
+
+const nameLimit = {
+    min: 3,
+    max: 50
+};
+
+const passwordLimit = {
+    min: 8,
+    max: 20
+};
 
 export async function openMongoConnection(): Promise<Db> {
     if (currentConnection) return currentConnection;
@@ -44,7 +54,9 @@ function showRequiredFields<T extends object>(
 
 const isValidEmail = (email: string): boolean => /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email);
 const isValidCNPJ = (cnpj: string): boolean => /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(cnpj);
+const isValidCPF = (cpf: string): boolean => /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf);
 
+/* User */
 export async function getUserById(id: number): Promise<IColetaUser | null> {
     const user = await currentConnection.collection<IColetaUser>('User').findOne({ id });
     return user;
@@ -65,8 +77,34 @@ async function getUserByCNPJ(cnpj: string): Promise<IColetaUser | null> {
     return user;
 }
 
+async function getUserByCPF(cpf: string): Promise<IColetaUser | null> {
+    const user = await currentConnection.collection<IColetaUser>('User').findOne({ cpf });
+    return user;
+}
+
 export async function getUserByObjectId(objectId: string): Promise<IColetaUser | null> {
     const user = await currentConnection.collection<IColetaUser>('User').findOne({ _id: new ObjectId(objectId) });
+    return user;
+}
+
+export async function updateUserData(id: number, data: Partial<IColetaUser>): Promise<IColetaUser | null> {
+    const user = await getUserById(id);
+    if (!user) return null;
+
+    if (data.password) {
+        const isValidPassword = data.password.length >= passwordLimit.min && data.password.length <= passwordLimit.max;
+        if (!isValidPassword) return null;
+
+        data.password = encryptPassword(data.password);
+    }
+
+    if (data.name) {
+        const isValidName = data.name.length >= nameLimit.min && data.name.length <= nameLimit.max;
+        if (!isValidName) return null;
+    }
+
+    await currentConnection.collection('User').updateOne({ id }, { $set: data }); 
+
     return user;
 }
 
@@ -79,18 +117,8 @@ export async function registerUser(data: IAuthRegister): Promise<IColetaUser | s
     const existingUserEmail = await getUserByEmail(data.email);
     if (existingUserEmail) return 'Email already in use';
 
-    const nameLimit = {
-        min: 3,
-        max: 50
-    };
-
     const isValidName = data.name.length >= nameLimit.min && data.name.length <= nameLimit.max;
     if (!isValidName) return `Name must be between ${nameLimit.min} and ${nameLimit.max} characters`;
-
-    const passwordLimit = {
-        min: 8,
-        max: 20
-    };
 
     const isValidPassword = data.password.length >= passwordLimit.min && data.password.length <= passwordLimit.max;
     if (!isValidPassword) return `Password must be between ${passwordLimit.min} and ${passwordLimit.max} characters`;
@@ -111,6 +139,12 @@ export async function registerUser(data: IAuthRegister): Promise<IColetaUser | s
 
         const existingUserCNPJ = await getUserByCNPJ(data.cnpj);
         if (existingUserCNPJ) return 'CNPJ already in use';
+    } else {
+        if (!data.cpf) return 'CPF is required for users and employees';
+        if (!isValidCPF(data.cpf)) return 'Invalid CPF';
+
+        const existingUserCPF = await getUserByCPF(data.cpf);
+        if (existingUserCPF) return 'CPF already in use';
     }
 
     const userData: IColetaUser = {
@@ -121,11 +155,15 @@ export async function registerUser(data: IAuthRegister): Promise<IColetaUser | s
         description: '',
         password,
         role: roles[data.accountType],
+        rating: 0,
         addresses: [],
         createdAt: Date.now()
     };
 
     if (data.accountType === 'enterprise') userData.cnpj = data.cnpj;
+    else if (data.accountType === 'employee') userData.completedSolicitations = 0;
+
+    if (data.accountType !== 'enterprise') userData.cpf = data.cpf;
 
     await currentConnection.collection('User').insertOne(userData);
     
@@ -157,6 +195,9 @@ export async function login(data: IAuthLogin): Promise<IColetaUser | string> {
     return hideAttributes(user, [ 'password' ]);
 }
 
+/* End user */
+
+/* Chat */
 async function getLasChatId(): Promise<number> {
     const lastChat = await currentConnection.collection<IColetaUser>('Chat').find().sort({ id: -1 }).limit(1).next();
     return lastChat ? (lastChat.id ?? 0) : 0;
@@ -229,3 +270,9 @@ export async function sendMessage(data: IMessageData): Promise<string | IChatMes
 
     return message;
 }
+
+/* End chat */
+
+/* Solicitation */
+/* TODO: Finish */
+/* End solicitation */

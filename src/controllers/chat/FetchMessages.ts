@@ -1,8 +1,8 @@
-import { IController, IExpressRequest, IExpressResponse } from "@datatypes/Controllers";
-import { getChatIdFromOwners, getMessagesFromChat } from "@utils/Database";
+import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
+import { getChatIdFromOwners, getMessagesFromChat } from '@utils/Database';
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
-    const userId = parseInt(request.params.userId!);
+    const userId = parseInt(request.params.userId);
     const chatId = await getChatIdFromOwners(request.user!.id, userId);
 
     if (!chatId) {

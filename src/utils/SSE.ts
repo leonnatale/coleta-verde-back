@@ -1,11 +1,11 @@
-import { IExpressResponse } from "@datatypes/Controllers";
-import EventEmitter from "events";
+import { IExpressResponse } from '@datatypes/Controllers';
+import EventEmitter from 'events';
 
 export const SSEEmitter = new EventEmitter();
 SSEEmitter.setMaxListeners(0);
 
 export class SSE {
-    private response: IExpressResponse;
+    private readonly response: IExpressResponse;
 
     constructor(response: IExpressResponse) {
         this.response = response;

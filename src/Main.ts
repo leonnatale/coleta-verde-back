@@ -40,7 +40,7 @@ const responseMiddleware = (_request: Request, response: Response, next: NextFun
 const controllers = readdirSync(path.join(__dirname, 'controllers'));
 const methodColor = {
     GET: 'green',
-    POST: 'cyan',
+    POST: 'purple',
     PUT: 'orange',
     DELETE: 'red'
 };

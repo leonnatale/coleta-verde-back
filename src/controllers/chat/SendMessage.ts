@@ -1,7 +1,7 @@
-import { IMessageData } from "@datatypes/Chat";
-import { IController, IExpressRequest, IExpressResponse } from "@datatypes/Controllers";
-import { sendMessage } from "@utils/Database";
-import { SSEEmitter } from "@utils/SSE";
+import { IMessageData } from '@datatypes/Chat';
+import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
+import { sendMessage } from '@utils/Database';
+import { SSEEmitter } from '@utils/SSE';
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
     const body: IMessageData = request.body || {};

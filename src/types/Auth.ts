@@ -12,5 +12,12 @@ export interface IAuthRegister {
     name: string,
     password: string,
     accountType: TAuthAccountType,
+    cpf?: string,
     cnpj?: string
+}
+
+export interface IUpdateUser {
+    name?: string,
+    description?: string,
+    password?: string
 }

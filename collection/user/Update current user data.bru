@@ -1,0 +1,23 @@
+meta {
+  name: Update current user data
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{endpoint}}/user/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Updated Name",
+    "password": "UpdatedPassword",
+    "description": "Updated description"
+  }
+}

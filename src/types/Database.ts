@@ -26,6 +26,9 @@ export interface IColetaUser extends Document {
     role: EColetaRole,
     addresses: IColetaAddress[],
     createdAt: number,
+    rating: number,
+    completedSolicitations?: number,
+    cpf?: string,
     cnpj?: string
 }
 
@@ -41,4 +44,13 @@ export interface IChatMessage {
     authorId: number,
     text: string,
     sentAt: number
+}
+
+export interface ISolicitation extends Document {
+    _id?: ObjectId,
+    id: number,
+    authorId: number,
+    employeeId: number,
+    createdAt: number,
+    finishedAt?: number
 }
