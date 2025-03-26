@@ -8,6 +8,11 @@ export enum EColetaRole {
     admin
 }
 
+export enum EColetaType {
+    rubble,
+    recycle
+}
+
 /* Interfaces */
 export interface IColetaAddress {
     cep: string,
@@ -50,7 +55,13 @@ export interface ISolicitation extends Document {
     _id?: ObjectId,
     id: number,
     authorId: number,
-    employeeId: number,
+    employeeId?: number,
+    accepted: boolean,
+    type: EColetaType,
+    address: IColetaAddress,
+    description: string,
+    suggestedValue: number,
+    finalValue?: number,
     createdAt: number,
     finishedAt?: number
 }

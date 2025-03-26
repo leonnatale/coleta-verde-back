@@ -3,8 +3,9 @@ import { bold } from 'chalk';
 import Logger from './Logger';
 import { IAuthLogin, IAuthRegister } from '@datatypes/Auth';
 import { comparePassword, encryptPassword } from './Passport';
-import { EColetaRole, IChat, IChatMessage, IColetaUser } from '@datatypes/Database';
+import { EColetaRole, EColetaType, IChat, IChatMessage, IColetaUser, ISolicitation } from '@datatypes/Database';
 import { IMessageData } from '@datatypes/Chat';
+import { ISolicitationCreation } from '@datatypes/Solicitation';
 
 const mongoUri = process.env['MONGODB_URI_CONNECTION'] ?? 'mongodb://localhost:27017/';
 const mongoDatabaseName = process.env['MONGODB_DATABASE_NAME'] ?? 'coletaverde';
@@ -103,13 +104,13 @@ export async function updateUserData(id: number, data: Partial<IColetaUser>): Pr
         if (!isValidName) return null;
     }
 
-    await currentConnection.collection('User').updateOne({ id }, { $set: data }); 
+    await currentConnection.collection('User').updateOne({ id }, { $set: data });
 
     return user;
 }
 
 export async function registerUser(data: IAuthRegister): Promise<IColetaUser | string> {
-    const requiredFields = showRequiredFields<IAuthRegister>(data, [ 'email', 'name', 'password', 'accountType' ]);
+    const requiredFields = showRequiredFields<IAuthRegister>(data, ['email', 'name', 'password', 'accountType']);
     if (requiredFields) return requiredFields;
 
     if (!isValidEmail(data.email)) return 'Invalid email';
@@ -166,8 +167,8 @@ export async function registerUser(data: IAuthRegister): Promise<IColetaUser | s
     if (data.accountType !== 'enterprise') userData.cpf = data.cpf;
 
     await currentConnection.collection('User').insertOne(userData);
-    
-    return hideAttributes(userData, [ 'password', '_id' ]);
+
+    return hideAttributes(userData, ['password', '_id']);
 }
 
 export async function verifyEmail(objectId: string): Promise<IColetaUser | null> {
@@ -177,11 +178,11 @@ export async function verifyEmail(objectId: string): Promise<IColetaUser | null>
 
     await currentConnection.collection('User').updateOne({ _id: new ObjectId(objectId) }, { $set: { verified: true } });
 
-    return hideAttributes(user, [ 'password', '_id' ]);
+    return hideAttributes(user, ['password', '_id']);
 }
 
 export async function login(data: IAuthLogin): Promise<IColetaUser | string> {
-    const requiredFields = showRequiredFields<IAuthLogin>(data, [ 'email', 'password' ]);
+    const requiredFields = showRequiredFields<IAuthLogin>(data, ['email', 'password']);
     if (requiredFields) return requiredFields;
 
     if (!isValidEmail(data.email)) return 'Invalid email';
@@ -192,13 +193,13 @@ export async function login(data: IAuthLogin): Promise<IColetaUser | string> {
     const isValidPassword = comparePassword(data.password, user.password);
     if (!isValidPassword) return 'Invalid password';
 
-    return hideAttributes(user, [ 'password' ]);
+    return hideAttributes(user, ['password']);
 }
 
 /* End user */
 
 /* Chat */
-async function getLasChatId(): Promise<number> {
+async function getLastChatId(): Promise<number> {
     const lastChat = await currentConnection.collection<IColetaUser>('Chat').find().sort({ id: -1 }).limit(1).next();
     return lastChat ? (lastChat.id ?? 0) : 0;
 }
@@ -208,8 +209,8 @@ export async function createChat(
     to: number
 ): Promise<IChat> {
     const chat: IChat = {
-        id: (await getLasChatId()) + 1,
-        owners: [ from, to ],
+        id: (await getLastChatId()) + 1,
+        owners: [from, to],
         data: []
     };
 
@@ -243,7 +244,7 @@ export async function getMessagesFromChat(chatId: number): Promise<IChatMessage[
 
 
 export async function sendMessage(data: IMessageData): Promise<string | IChatMessage> {
-    const requiredFields = showRequiredFields(data, [ 'to', 'message' ]);
+    const requiredFields = showRequiredFields(data, ['to', 'message']);
     if (requiredFields) return requiredFields;
 
     if (data.from == data.to) return 'Can\'t message to yourself';
@@ -262,7 +263,7 @@ export async function sendMessage(data: IMessageData): Promise<string | IChatMes
         text: data.message,
         sentAt: Date.now()
     };
-    
+
     await currentConnection.collection<IChat>('Chat').updateOne(
         { id: chatId },
         { $push: { data: message as any } }
@@ -273,6 +274,55 @@ export async function sendMessage(data: IMessageData): Promise<string | IChatMes
 
 /* End chat */
 
+/* Address */
+export async function createAddress() { }
+/* End address */
+
 /* Solicitation */
-/* TODO: Finish */
+
+async function getLastSolicitationId(): Promise<number> {
+    const lastChat = await currentConnection.collection<IColetaUser>('Chat').find().sort({ id: -1 }).limit(1).next();
+    return lastChat ? (lastChat.id ?? 0) : 0;
+}
+export async function createSolicitation(data: ISolicitationCreation): Promise<ISolicitation | string> {
+    const missingFields = showRequiredFields(data, ['type', 'addressIndex', 'description', 'suggestedValue']);
+    if (missingFields) return missingFields;
+
+    const author: IColetaUser = (await getUserById(data.authorId))!;
+
+    const types = {
+        rubble: EColetaType.rubble,
+        recycle: EColetaType.recycle
+    };
+
+    const type = types[data.type];
+
+    if (type === undefined) return `Invalid type, avaible types: ${Object.keys(types).join(', ')}`;
+
+    const address = author.addresses[data.addressIndex];
+
+    if (!address) return 'Invalid address index';
+
+    if (data.description.length > 3_000) return 'Description field exceeded the max characters limit';
+
+    if (isNaN(data.suggestedValue) || typeof data.suggestedValue !== 'number') return 'Suggested value is not a number';
+    if (data.suggestedValue <= 0) return 'Suggested value must be greater than 0.';
+
+    const suggestedValue = parseFloat(data.suggestedValue.toFixed(2));
+
+    const solicitation: ISolicitation = {
+        id: (await getLastSolicitationId()) + 1,
+        authorId: data.authorId,
+        type,
+        address,
+        description: data.description,
+        suggestedValue,
+        accepted: false,
+        createdAt: Date.now()
+    };
+
+    await currentConnection.collection<ISolicitation>('Solicitation').insertOne(solicitation);
+
+    return solicitation;
+}
 /* End solicitation */
