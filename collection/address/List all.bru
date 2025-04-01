@@ -1,0 +1,15 @@
+meta {
+  name: List all
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{endpoint}}/address/all
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

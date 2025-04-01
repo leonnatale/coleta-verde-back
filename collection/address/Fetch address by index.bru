@@ -1,0 +1,15 @@
+meta {
+  name: Fetch address by index
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{endpoint}}/address/index/0
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Set final value
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{endpoint}}/solicitation/value
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "id": 1,
+    "finalValue": 100
+  }
+}

@@ -9,3 +9,14 @@ export interface ISolicitationCreation {
     description: string,
     suggestedValue: number
 }
+
+export interface ISolicitationFinalValue {
+    id: number,
+    employeeId: number,
+    finalValue: number
+}
+
+export interface ISolicitationAccept {
+    id: number,
+    employeeId: number
+}

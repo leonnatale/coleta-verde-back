@@ -5,7 +5,7 @@ import { IAuthLogin, IAuthRegister } from '@datatypes/Auth';
 import { comparePassword, encryptPassword } from './Passport';
 import { EColetaRole, EColetaType, IChat, IChatMessage, IColetaAddress, IColetaUser, ISolicitation } from '@datatypes/Database';
 import { IMessageData } from '@datatypes/Chat';
-import { ISolicitationCreation } from '@datatypes/Solicitation';
+import { ISolicitationAccept, ISolicitationCreation, ISolicitationFinalValue } from '@datatypes/Solicitation';
 import { IAddressCreation } from '@datatypes/Address';
 import { getAddressFromCEP } from './ViaCEP';
 
@@ -313,14 +313,38 @@ export async function createAddress(data: IAddressCreation, userId: number): Pro
 
     return newAddress;
 }
+
+export async function deleteAddress(userId: number, index: number): Promise<IColetaAddress | string> {
+    const user = await getUserById(userId);
+    if (!user) return 'User not found.';
+
+    if (index < 0 || index >= user.addresses.length) return 'Invalid address index.';
+
+    const address = user.addresses[index];
+
+    if (!address) return 'Address not found.';
+
+    await currentConnection.collection<IColetaUser>('User').updateOne(
+        { id: userId },
+        { $pull: { addresses: address as any } }
+    );
+
+    return address;
+}
 /* End address */
 
 /* Solicitation */
 
 async function getLastSolicitationId(): Promise<number> {
-    const lastChat = await currentConnection.collection<IColetaUser>('Chat').find().sort({ id: -1 }).limit(1).next();
+    const lastChat = await currentConnection.collection<IColetaUser>('Solicitation').find().sort({ id: -1 }).limit(1).next();
     return lastChat ? (lastChat.id ?? 0) : 0;
 }
+
+export async function getSolicitationById(id: number): Promise<ISolicitation | null> {
+    const solicitation = await currentConnection.collection<ISolicitation>('Solicitation').findOne({ id });
+    return solicitation;
+}
+
 export async function createSolicitation(data: ISolicitationCreation): Promise<ISolicitation | string> {
     const missingFields = showRequiredFields(data, ['type', 'addressIndex', 'description', 'suggestedValue']);
     if (missingFields) return missingFields;
@@ -350,6 +374,7 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
     const solicitation: ISolicitation = {
         id: (await getLastSolicitationId()) + 1,
         authorId: data.authorId,
+        progress: 'created',
         type,
         address,
         description: data.description,
@@ -362,4 +387,39 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
 
     return solicitation;
 }
+
+export async function setFinalValue(data: ISolicitationFinalValue): Promise<ISolicitation | string> {
+    const solicitation = await getSolicitationById(data.id);
+    if (!solicitation) return 'Solicitation not found.';
+
+    if (!solicitation.accepted) return 'Solicitation is not accepted';
+    if (solicitation.employeeId !== data.employeeId) return 'You are not the employee of this solicitation';
+
+    if (isNaN(data.finalValue) || typeof data.finalValue !== 'number') return 'Final value is not a number';
+    if (data.finalValue <= 0) return 'Final value must be greater than 0.';
+
+    const newFinalValue = parseFloat(data.finalValue.toFixed(2));
+
+    await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
+        { id: data.id },
+        { $set: { finalValue: newFinalValue } }
+    );
+    
+    return solicitation;
+}
+
+export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISolicitation | string> {
+    const solicitation = await getSolicitationById(data.id);
+    if (!solicitation) return 'Solicitation not found.';
+
+    if (solicitation.accepted) return 'This solicitation can\'t be accepted';
+
+    await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
+        { id: data.id },
+        { $set: { accepted: true, employeeId: data.employeeId } }
+    );
+
+    return solicitation;
+}
+
 /* End solicitation */

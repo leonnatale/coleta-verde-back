@@ -1,5 +1,8 @@
 import { Document, ObjectId } from 'mongodb';
 
+/* Types */
+type TSolicitationProgress = 'created' | 'accepted' | 'inProgress' | 'finished';
+
 /* Enums */
 export enum EColetaRole {
     user,
@@ -63,6 +66,7 @@ export interface ISolicitation extends Document {
     authorId: number,
     employeeId?: number,
     accepted: boolean,
+    progress: TSolicitationProgress,
     type: EColetaType,
     address: IColetaAddress,
     description: string,

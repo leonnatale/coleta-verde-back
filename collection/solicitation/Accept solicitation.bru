@@ -1,0 +1,21 @@
+meta {
+  name: Accept solicitation
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{endpoint}}/solicitation/accept
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "id": 1
+  }
+}
