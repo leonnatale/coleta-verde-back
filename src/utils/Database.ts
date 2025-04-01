@@ -3,9 +3,11 @@ import { bold } from 'chalk';
 import Logger from './Logger';
 import { IAuthLogin, IAuthRegister } from '@datatypes/Auth';
 import { comparePassword, encryptPassword } from './Passport';
-import { EColetaRole, EColetaType, IChat, IChatMessage, IColetaUser, ISolicitation } from '@datatypes/Database';
+import { EColetaRole, EColetaType, IChat, IChatMessage, IColetaAddress, IColetaUser, ISolicitation } from '@datatypes/Database';
 import { IMessageData } from '@datatypes/Chat';
 import { ISolicitationCreation } from '@datatypes/Solicitation';
+import { IAddressCreation } from '@datatypes/Address';
+import { getAddressFromCEP } from './ViaCEP';
 
 const mongoUri = process.env['MONGODB_URI_CONNECTION'] ?? 'mongodb://localhost:27017/';
 const mongoDatabaseName = process.env['MONGODB_DATABASE_NAME'] ?? 'coletaverde';
@@ -56,6 +58,7 @@ function showRequiredFields<T extends object>(
 const isValidEmail = (email: string): boolean => /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email);
 const isValidCNPJ = (cnpj: string): boolean => /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(cnpj);
 const isValidCPF = (cpf: string): boolean => /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf);
+const isValidCEP = (cep: string): boolean => /^\d{5}-\d{3}$/.test(cep);
 
 /* User */
 export async function getUserById(id: number): Promise<IColetaUser | null> {
@@ -275,7 +278,41 @@ export async function sendMessage(data: IMessageData): Promise<string | IChatMes
 /* End chat */
 
 /* Address */
-export async function createAddress() { }
+export async function alreadyHasRegisteredAddress(userId: number, cep: string): Promise<boolean> {
+    const user = await getUserById(userId);
+    if (!user) return false;
+    return user.addresses.some(address => address.cep === cep);
+}
+
+export async function createAddress(data: IAddressCreation, userId: number): Promise<IColetaAddress | string> {
+    const missingFields = showRequiredFields(data, [ 'cep' ]);
+    if (missingFields) return missingFields;
+
+    if (!isValidCEP(data.cep)) return 'Invalid CEP.';
+
+    const addressData = await getAddressFromCEP(data.cep);
+
+    if (!addressData) return 'Doesn\'t exist address with this CEP.';
+
+    const user = await getUserById(userId);
+    if (!user) return 'User not found.';
+
+    if (await alreadyHasRegisteredAddress(userId, data.cep)) return 'This address is already registered.';
+
+    const newAddress: IColetaAddress = {
+        ...addressData,
+        complemento: data.complemento ?? addressData.complemento ?? 'Não informado',
+        unidade: data.unidade ?? addressData.unidade ?? 'Não informado',
+        cep: data.cep
+    };
+
+    await currentConnection.collection<IColetaUser>('User').updateOne(
+        { id: userId },
+        { $push: { addresses: newAddress as any } }
+    );
+
+    return newAddress;
+}
 /* End address */
 
 /* Solicitation */

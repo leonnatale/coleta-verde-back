@@ -16,8 +16,14 @@ export enum EColetaType {
 /* Interfaces */
 export interface IColetaAddress {
     cep: string,
-    number: string,
-    complement: string
+    logradouro: string,
+    complemento: string,
+    unidade: string,
+    bairro: string,
+    localidade: string,
+    uf: string,
+    estado: string,
+    regiao: string
 }
 
 export interface IColetaUser extends Document {
