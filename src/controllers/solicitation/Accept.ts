@@ -22,5 +22,5 @@ export const controller: IController = {
     path: '/accept',
     method: 'POST',
     authenticationRequired: true,
-    requiredRole: [ EColetaRole.employee, EColetaRole.admin ]
+    requiredRole: [EColetaRole.employee, EColetaRole.admin]
 }

@@ -1,0 +1,21 @@
+meta {
+  name: Consent
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{endpoint}}/solicitation/consent
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "id": 1
+  }
+}

@@ -5,7 +5,7 @@ import { IAuthLogin, IAuthRegister } from '@datatypes/Auth';
 import { comparePassword, encryptPassword } from './Passport';
 import { EColetaRole, EColetaType, IChat, IChatMessage, IColetaAddress, IColetaUser, ISolicitation } from '@datatypes/Database';
 import { IMessageData } from '@datatypes/Chat';
-import { ISolicitationAccept, ISolicitationCreation, ISolicitationFinalValue } from '@datatypes/Solicitation';
+import { ISolicitationAccept, ISolicitationConsentFinalValue, ISolicitationCreation, ISolicitationSuggestNewValue } from '@datatypes/Solicitation';
 import { IAddressCreation } from '@datatypes/Address';
 import { getAddressFromCEP } from './ViaCEP';
 
@@ -285,7 +285,7 @@ export async function alreadyHasRegisteredAddress(userId: number, cep: string): 
 }
 
 export async function createAddress(data: IAddressCreation, userId: number): Promise<IColetaAddress | string> {
-    const missingFields = showRequiredFields(data, [ 'cep' ]);
+    const missingFields = showRequiredFields(data, ['cep']);
     if (missingFields) return missingFields;
 
     if (!isValidCEP(data.cep)) return 'Invalid CEP.';
@@ -380,6 +380,7 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
         description: data.description,
         suggestedValue,
         accepted: false,
+        consent: [],
         createdAt: Date.now()
     };
 
@@ -388,23 +389,48 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
     return solicitation;
 }
 
-export async function setFinalValue(data: ISolicitationFinalValue): Promise<ISolicitation | string> {
+export async function suggestNewValue(data: ISolicitationSuggestNewValue): Promise<string | null> {
+    if (isNaN(data.value) || typeof data.value !== 'number') return 'Final value is not a number';
+    if (data.value <= 0) return 'Final value must be greater than 0.';
+
     const solicitation = await getSolicitationById(data.id);
     if (!solicitation) return 'Solicitation not found.';
 
-    if (!solicitation.accepted) return 'Solicitation is not accepted';
-    if (solicitation.employeeId !== data.employeeId) return 'You are not the employee of this solicitation';
+    if (solicitation.authorId !== data.authorId && solicitation.employeeId !== data.authorId) return 'You\'re not allowed';
 
-    if (isNaN(data.finalValue) || typeof data.finalValue !== 'number') return 'Final value is not a number';
-    if (data.finalValue <= 0) return 'Final value must be greater than 0.';
-
-    const newFinalValue = parseFloat(data.finalValue.toFixed(2));
+    const newValue = parseFloat(data.value.toFixed(2));
 
     await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
         { id: data.id },
-        { $set: { finalValue: newFinalValue } }
+        { $set: { suggestedValue: newValue, consent: [] } }
     );
-    
+
+    return null;
+}
+
+export async function consentFinalValue(data: ISolicitationConsentFinalValue): Promise<ISolicitation | string> {
+    let solicitation = await getSolicitationById(data.id);
+    if (!solicitation) return 'Solicitation not found.';
+
+    if (!solicitation.accepted) return 'Solicitation is not accepted';
+
+    if (solicitation.employeeId !== data.authorId && solicitation.authorId !== data.authorId) return 'You\'re not allowed.';
+
+    if (data.authorId in solicitation.consent) return 'You\'ve already consented.';
+
+    await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
+        { id: data.id },
+        { $push: { consent: data.authorId as any } }
+    );
+
+    solicitation = (await getSolicitationById(data.id))!;
+
+    if (solicitation.authorId in solicitation.consent && solicitation.employeeId! in solicitation.consent)
+        await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
+            { id: data.id },
+            { $set: { finalValue: solicitation.suggestedValue } }
+        );
+
     return solicitation;
 }
 
@@ -412,7 +438,9 @@ export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISo
     const solicitation = await getSolicitationById(data.id);
     if (!solicitation) return 'Solicitation not found.';
 
-    if (solicitation.accepted) return 'This solicitation can\'t be accepted';
+    if (solicitation.accepted) return 'This solicitation couldn\'t be accepted';
+
+    if (solicitation.authorId == data.employeeId) return 'You can\'t accept solicitations created by yourself';
 
     await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
         { id: data.id },

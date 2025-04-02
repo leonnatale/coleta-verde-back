@@ -71,6 +71,7 @@ export interface ISolicitation extends Document {
     address: IColetaAddress,
     description: string,
     suggestedValue: number,
+    consent: number[],
     finalValue?: number,
     createdAt: number,
     finishedAt?: number

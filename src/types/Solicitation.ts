@@ -10,10 +10,15 @@ export interface ISolicitationCreation {
     suggestedValue: number
 }
 
-export interface ISolicitationFinalValue {
+export interface ISolicitationConsentFinalValue {
     id: number,
-    employeeId: number,
-    finalValue: number
+    authorId: number,
+}
+
+export interface ISolicitationSuggestNewValue {
+    id: number,
+    authorId: number,
+    value: number
 }
 
 export interface ISolicitationAccept {
