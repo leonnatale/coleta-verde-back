@@ -412,11 +412,13 @@ export async function consentFinalValue(data: ISolicitationConsentFinalValue): P
     let solicitation = await getSolicitationById(data.id);
     if (!solicitation) return 'Solicitation not found.';
 
+    if (solicitation.finalValue != undefined) return 'Final value is already defined';
+
     if (!solicitation.accepted) return 'Solicitation is not accepted';
 
     if (solicitation.employeeId !== data.authorId && solicitation.authorId !== data.authorId) return 'You\'re not allowed.';
 
-    if (data.authorId in solicitation.consent) return 'You\'ve already consented.';
+    if (solicitation.consent.includes(data.authorId)) return 'You\'ve already consented.';
 
     await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
         { id: data.id },
@@ -425,7 +427,7 @@ export async function consentFinalValue(data: ISolicitationConsentFinalValue): P
 
     solicitation = (await getSolicitationById(data.id))!;
 
-    if (solicitation.authorId in solicitation.consent && solicitation.employeeId! in solicitation.consent)
+    if (solicitation.consent.includes(solicitation.authorId) && solicitation.consent.includes(solicitation.employeeId!))
         await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
             { id: data.id },
             { $set: { finalValue: solicitation.suggestedValue } }
