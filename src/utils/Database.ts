@@ -345,6 +345,11 @@ export async function getSolicitationById(id: number): Promise<ISolicitation | n
     return solicitation;
 }
 
+export async function getSolicitationByCEP(cep: string): Promise<ISolicitation | null> {
+    const solicitation = await currentConnection.collection<ISolicitation>('Solicitation').findOne({ $where() { return this.address.cep == cep } });
+    return solicitation;
+}
+
 export async function createSolicitation(data: ISolicitationCreation): Promise<ISolicitation | string> {
     const missingFields = showRequiredFields(data, ['type', 'addressIndex', 'description', 'suggestedValue']);
     if (missingFields) return missingFields;
@@ -363,6 +368,10 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
     const address = author.addresses[data.addressIndex];
 
     if (!address) return 'Invalid address index';
+
+    const addressData = await getSolicitationByCEP(address.cep);
+    
+    if (addressData) return 'A solicitation already exists for this address.';
 
     if (data.description.length > 3_000) return 'Description field exceeded the max characters limit';
 
@@ -450,6 +459,15 @@ export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISo
     );
 
     return solicitation;
+}
+
+export async function listAllSolicitations(page: number, limit: number = 5): Promise<ISolicitation[]> {
+    const solicitations = await currentConnection.collection<ISolicitation>('Solicitation')
+    .find({ accepted: false }, { projection: { _id: 0 } })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .toArray();
+    return solicitations;
 }
 
 /* End solicitation */

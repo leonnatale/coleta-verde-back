@@ -1,5 +1,5 @@
 import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
-import { EColetaRole, ISolicitation } from '@datatypes/Database';
+import { ISolicitation } from '@datatypes/Database';
 import { ISolicitationCreation } from '@datatypes/Solicitation';
 import { createSolicitation, hideAttributes } from '@utils/Database';
 
