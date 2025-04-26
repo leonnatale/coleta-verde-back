@@ -227,9 +227,7 @@ export async function getChatIdFromOwners(
     to: number
 ): Promise<number | null> {
     const chat = await currentConnection.collection<IChat>('Chat').findOne({
-        $where() {
-            return from in this.owners && to in this.owners;
-        }
+        $and: [{ owners: from }, { owners: to }]
     });
 
     return chat?.id ?? null;
