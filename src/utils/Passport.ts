@@ -7,7 +7,7 @@ import { IExpressResponse } from '@datatypes/Controllers';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { bold } from 'chalk';
 import dotenv from 'dotenv';
-import { getUserById } from './Database';
+import { getUserById, hideAttributes } from './Database';
 
 dotenv.config();
 
@@ -38,6 +38,7 @@ export const jwtStrategy = new Strategy(options, async (payload, done) => {
 });
 
 export function generateToken(user: IColetaUser): string {
+    user = hideAttributes(user, [ 'addresses' ]);
     const token = sign(user, saltKey, { expiresIn: '1d' });
     return token;
 }

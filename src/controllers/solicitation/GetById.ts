@@ -6,7 +6,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
     const id = parseInt(request.params.id);
 
     if (isNaN(id)) {
-        response.status(400).json({ message: `'${id}' is not a number` });
+        response.status(400).json({ message: `Invalid user ID: '${id}' is not a number` });
         return;
     }
 
@@ -22,7 +22,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
 
 export const controller: IController = {
     main,
-    path: '/:id',
+    path: '/id/:id',
     method: 'GET',
     authenticationRequired: true,
     requiredRole: [EColetaRole.employee, EColetaRole.admin]

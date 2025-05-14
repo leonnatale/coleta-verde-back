@@ -5,11 +5,21 @@ meta {
 }
 
 get {
-  url: {{endpoint}}/chat/2
+  url: {{endpoint}}/chat/:userId
   body: none
   auth: bearer
 }
 
+params:path {
+  userId: 2
+}
+
 auth:bearer {
   token: {{token}}
+}
+
+docs {
+  # Mensagens de um chat
+  
+  Esse path pega todas as mensagens enviadas do remetente (usuário logado) para o destinatário (`userId` no `param`)
 }

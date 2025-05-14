@@ -5,11 +5,21 @@ meta {
 }
 
 get {
-  url: {{endpoint}}/address/index/0
+  url: {{endpoint}}/address/index/:index
   body: none
   auth: bearer
 }
 
+params:path {
+  index: 0
+}
+
 auth:bearer {
   token: {{token}}
+}
+
+docs {
+  # Pegar endereço por INDEX
+  
+  Retorna o endereço do usuário logado pela posição dele na lista de endereços (começando do número 0)
 }

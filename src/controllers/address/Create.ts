@@ -14,7 +14,6 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
     }
 
     response.json({ data: newAddress });
-
 }
 
 export const controller: IController = {

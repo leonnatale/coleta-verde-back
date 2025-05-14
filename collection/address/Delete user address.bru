@@ -5,11 +5,21 @@ meta {
 }
 
 delete {
-  url: {{endpoint}}/address/delete/index/0
+  url: {{endpoint}}/address/delete/index/:index
   body: none
   auth: bearer
 }
 
+params:path {
+  index: 0
+}
+
 auth:bearer {
   token: {{token}}
+}
+
+docs {
+  # Deletar endereço por INDEX
+  
+  Deleta o endereço do usuário logado pela posição dele na lista de endereços (começando do número 0)
 }

@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{endpoint}}/solicitation/:id
+  url: {{endpoint}}/solicitation/id/:id
   body: none
   auth: bearer
 }
@@ -16,4 +16,10 @@ params:path {
 
 auth:bearer {
   token: {{token}}
+}
+
+docs {
+  # Solicitação por ID
+  
+  Retorna a solicitação pelo ID
 }

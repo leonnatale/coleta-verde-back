@@ -276,10 +276,10 @@ export async function sendMessage(data: IMessageData): Promise<string | IChatMes
 /* End chat */
 
 /* Address */
-export async function alreadyHasRegisteredAddress(userId: number, cep: string): Promise<boolean> {
+export async function alreadyHasRegisteredAddress(userId: number, cep: string, unidade?: string): Promise<boolean> {
     const user = await getUserById(userId);
     if (!user) return false;
-    return user.addresses.some(address => address.cep === cep);
+    return user.addresses.some(address => address.cep === cep && address.unidade == unidade);
 }
 
 export async function createAddress(data: IAddressCreation, userId: number): Promise<IColetaAddress | string> {
@@ -295,7 +295,7 @@ export async function createAddress(data: IAddressCreation, userId: number): Pro
     const user = await getUserById(userId);
     if (!user) return 'User not found.';
 
-    if (await alreadyHasRegisteredAddress(userId, data.cep)) return 'This address is already registered.';
+    if (await alreadyHasRegisteredAddress(userId, data.cep, data.unidade)) return 'This address is already registered.';
 
     const newAddress: IColetaAddress = {
         ...addressData,
@@ -367,9 +367,9 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
 
     if (!address) return 'Invalid address index';
 
-    const addressData = await getSolicitationByCEP(address.cep);
+    const solicitationData = await getSolicitationByCEP(address.cep);
     
-    if (addressData) return 'A solicitation already exists for this address.';
+    if (solicitationData && solicitationData.address.unidade == address.unidade) return 'A solicitation already exists for this same address.';
 
     if (data.description.length > 3_000) return 'Description field exceeded the max characters limit';
 
