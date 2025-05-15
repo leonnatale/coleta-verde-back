@@ -279,7 +279,7 @@ export async function sendMessage(data: IMessageData): Promise<string | IChatMes
 export async function alreadyHasRegisteredAddress(userId: number, cep: string, unidade?: string): Promise<boolean> {
     const user = await getUserById(userId);
     if (!user) return false;
-    return user.addresses.some(address => address.cep === cep && address.unidade == unidade);
+    return user.addresses.some(address => address.cep === cep && (address.unidade == unidade || (!address.unidade && !unidade)));
 }
 
 export async function createAddress(data: IAddressCreation, userId: number): Promise<IColetaAddress | string> {

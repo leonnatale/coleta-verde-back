@@ -2,7 +2,7 @@ import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Contr
 import { hideAttributes } from '@utils/Database';
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
-    response.json({ data: hideAttributes(request.user!, [ 'password', '_id', 'iat', 'exp' ]) });
+    response.json({ data: hideAttributes(request.user!, [ 'password', 'addresses', '_id', 'iat', 'exp' ]) });
 }
 
 export const controller: IController = {
