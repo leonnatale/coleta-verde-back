@@ -7,4 +7,17 @@ docs {
   # Exemplos
   
   Exemplos de registro de usuários de todos os 3 tipos (`user`, `enterprise` e `employee`)
+  
+  # Body data
+  ``` 
+  {
+      email: string,
+      name: string,
+      password: string,
+      accountType: 'user' | 'employee' | 'enterprise',
+      cpf?: string,
+      cnpj?: string
+  }
+  ```
+  
 }
