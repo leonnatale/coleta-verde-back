@@ -286,11 +286,13 @@ export async function createAddress(data: IAddressCreation, userId: number): Pro
     const missingFields = showRequiredFields(data, ['cep']);
     if (missingFields) return missingFields;
 
+    if (data.unidade && typeof data.unidade !== 'string') return 'Invalid unidade type.';
+
     if (!isValidCEP(data.cep)) return 'Invalid CEP.';
 
     const addressData = await getAddressFromCEP(data.cep);
 
-    if (!addressData) return 'Doesn\'t exist address with this CEP.';
+    if (!addressData) return 'Doesn\'t exist addresses with this CEP.';
 
     const user = await getUserById(userId);
     if (!user) return 'User not found.';
@@ -352,24 +354,25 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
     const missingFields = showRequiredFields(data, ['type', 'addressIndex', 'description', 'suggestedValue']);
     if (missingFields) return missingFields;
 
+    
     const author: IColetaUser = (await getUserById(data.authorId))!;
-
+    
     const types = {
         rubble: EColetaType.rubble,
         recycle: EColetaType.recycle
     };
-
+    
     const type = types[data.type];
-
+    
     if (type === undefined) return `Invalid type, avaible types: ${Object.keys(types).join(', ')}`;
-
+    
     const address = author.addresses[data.addressIndex];
-
+    
     if (!address) return 'Invalid address index';
-
+    
     const solicitationData = await getSolicitationByCEP(address.cep);
     
-    if (solicitationData && solicitationData.address.unidade == address.unidade) return 'A solicitation already exists for this same address.';
+    if (solicitationData && solicitationData.address.unidade === address.unidade) return 'A solicitation already exists for this same address.';
 
     if (data.description.length > 3_000) return 'Description field exceeded the max characters limit';
 
@@ -388,6 +391,7 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
         suggestedValue,
         accepted: false,
         consent: [],
+        desiredDate: data.desiredDate,
         createdAt: Date.now()
     };
 

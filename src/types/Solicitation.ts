@@ -6,6 +6,7 @@ export interface ISolicitationCreation {
     authorId: number,
     type: TColetaType,
     addressIndex: number,
+    desiredDate: number,
     description: string,
     suggestedValue: number
 }

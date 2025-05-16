@@ -72,6 +72,7 @@ export interface ISolicitation extends Document {
     description: string,
     suggestedValue: number,
     consent: number[],
+    desiredDate: number,
     finalValue?: number,
     createdAt: number,
     finishedAt?: number
