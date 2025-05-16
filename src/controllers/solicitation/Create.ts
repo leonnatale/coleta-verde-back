@@ -10,7 +10,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
     const solicitation: ISolicitation | string = await createSolicitation(body);
 
     if (typeof solicitation === 'string') {
-        response.status(404).json({ message: solicitation });
+        response.status(400).json({ message: solicitation });
         return;
     }
 

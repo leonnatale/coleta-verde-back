@@ -12,7 +12,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
 
     const result: ISolicitation | null = await getSolicitationById(id);
 
-    if (!result) {
+    if (!result || result.authorId != request.user?.id) {
         response.status(404).json({ message: 'Not found' });
         return;
     }
@@ -22,8 +22,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
 
 export const controller: IController = {
     main,
-    path: '/id/:id',
+    path: '/id/:id/me',
     method: 'GET',
     authenticationRequired: true,
-    requiredRole: [EColetaRole.employee, EColetaRole.admin]
 }

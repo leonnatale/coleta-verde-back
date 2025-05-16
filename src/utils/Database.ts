@@ -279,7 +279,7 @@ export async function sendMessage(data: IMessageData): Promise<string | IChatMes
 export async function alreadyHasRegisteredAddress(userId: number, cep: string, unidade?: string): Promise<boolean> {
     const user = await getUserById(userId);
     if (!user) return false;
-    return user.addresses.some(address => address.cep === cep && (address.unidade == unidade || (!address.unidade && !unidade)));
+    return user.addresses.some(address => address.cep == cep && address.unidade == unidade || !address.unidade && !unidade);
 }
 
 export async function createAddress(data: IAddressCreation, userId: number): Promise<IColetaAddress | string> {
@@ -301,8 +301,8 @@ export async function createAddress(data: IAddressCreation, userId: number): Pro
 
     const newAddress: IColetaAddress = {
         ...addressData,
-        complemento: data.complemento ?? addressData.complemento ?? 'Não informado',
-        unidade: data.unidade ?? addressData.unidade ?? 'Não informado',
+        complemento: data.complemento || addressData.complemento || '',
+        unidade: data.unidade || addressData.unidade || '',
         cep: data.cep
     };
 
@@ -345,16 +345,22 @@ export async function getSolicitationById(id: number): Promise<ISolicitation | n
     return solicitation;
 }
 
-export async function getSolicitationByCEP(cep: string): Promise<ISolicitation | null> {
-    const solicitation = await currentConnection.collection<ISolicitation>('Solicitation').findOne({ $where() { return this.address.cep == cep } });
+export async function getSolicitationByAddress(cep: string, unidade: string): Promise<ISolicitation | null> {
+    const solicitation = await currentConnection.collection<ISolicitation>('Solicitation')
+        .findOne({
+            'address.cep': cep,
+            'address.unidade': unidade
+        });
     return solicitation;
 }
 
 export async function createSolicitation(data: ISolicitationCreation): Promise<ISolicitation | string> {
-    const missingFields = showRequiredFields(data, ['type', 'addressIndex', 'description', 'suggestedValue']);
+    const missingFields = showRequiredFields(data, ['type', 'addressIndex', 'description', 'desiredDate', 'suggestedValue']);
     if (missingFields) return missingFields;
 
-    
+    const desiredDate = new Date(data.desiredDate).getTime();
+    if (Date.now() > desiredDate) return 'We don\'t live in the past!';
+
     const author: IColetaUser = (await getUserById(data.authorId))!;
     
     const types = {
@@ -370,9 +376,8 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
     
     if (!address) return 'Invalid address index';
     
-    const solicitationData = await getSolicitationByCEP(address.cep);
-    
-    if (solicitationData && solicitationData.address.unidade === address.unidade) return 'A solicitation already exists for this same address.';
+    const solicitationData = await getSolicitationByAddress(address.cep, address.unidade);
+    if (solicitationData && solicitationData.address.unidade == address.unidade) return 'A solicitation already exists for this same address.';
 
     if (data.description.length > 3_000) return 'Description field exceeded the max characters limit';
 
@@ -466,6 +471,15 @@ export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISo
 export async function listAllSolicitations(page: number, limit: number = 5): Promise<ISolicitation[]> {
     const solicitations = await currentConnection.collection<ISolicitation>('Solicitation')
     .find({ accepted: false }, { projection: { _id: 0 } })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .toArray();
+    return solicitations;
+}
+
+export async function listMySolicitations(authorId: number, page: number, limit: number = 5): Promise<ISolicitation[]> {
+    const solicitations = await currentConnection.collection<ISolicitation>('Solicitation')
+    .find({ authorId }, { projection: { _id: 0 } })
     .skip((page - 1) * limit)
     .limit(limit)
     .toArray();

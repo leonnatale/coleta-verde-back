@@ -17,7 +17,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
         return;
     }
 
-    let attributesToHide = [ 'password', '_id', 'addresses' ];
+    let attributesToHide = [ 'password', '_id', 'addresses', 'cpf', 'cnpj' ];
 
     if (request.user!.role === EColetaRole.admin) attributesToHide = [];
 

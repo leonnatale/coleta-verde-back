@@ -38,7 +38,7 @@ export const jwtStrategy = new Strategy(options, async (payload, done) => {
 });
 
 export function generateToken(user: IColetaUser): string {
-    user = hideAttributes(user, [ 'addresses' ]);
+    user = hideAttributes(user, [ 'addresses', 'description' ]);
     const token = sign(user, saltKey, { expiresIn: '1d' });
     return token;
 }

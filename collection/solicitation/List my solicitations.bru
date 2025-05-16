@@ -1,0 +1,26 @@
+meta {
+  name: List my solicitations
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{endpoint}}/solicitation/all/me?page=1&limit=5
+  body: none
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  limit: 5
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Solicitações do usuário atual
+  
+  Retorna todas as solicitações do usuário logado
+}

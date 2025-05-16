@@ -1,0 +1,19 @@
+meta {
+  name: Fetch my solicitation by ID
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{endpoint}}/solicitation/id/:id/me
+  body: none
+  auth: bearer
+}
+
+params:path {
+  id: 1
+}
+
+auth:bearer {
+  token: {{token}}
+}
