@@ -15,14 +15,14 @@ auth:bearer {
 }
 
 body:multipart-form {
+  image: @file(solicitation\create\flying beagle.jpg)
   solicitation: '''
     {
-        "type": "biohazard",
-        "addressIndex": 0,
-        "desiredDate": 2063189623000,
-        "description": "Lixo com risco biológico",
-        "suggestedValue": 10000
+          "type": "biohazard",
+          "addressIndex": 0,
+          "desiredDate": 2063189623000,
+          "description": "Lixo com risco biológico",
+          "suggestedValue": 10000
     }
-  ''' @contentType(application/json)
-  image: @file(solicitation\create\flying beagle.jpg)
+  '''
 }
