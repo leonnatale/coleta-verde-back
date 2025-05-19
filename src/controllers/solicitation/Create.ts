@@ -7,9 +7,9 @@ import path from 'path';
 import fs from 'fs';
 
 export const uploadImageStorage = multer.diskStorage({
-    destination: path.join(process.cwd(), 'uploads'),
+    destination: '/uploads/',
     filename(request: IExpressRequest, file, callback) {
-        const userDir = path.join(process.cwd(), 'uploads', String(request.user?.id));
+        const userDir = path.join('/uploads', String(request.user?.id));
         if (!fs.existsSync(userDir)) fs.mkdirSync(userDir, { recursive: true });
         const lastIndex = fs.readdirSync(userDir).length;
         callback(null, path.join(String(request.user?.id), lastIndex + path.extname(file.originalname)));
