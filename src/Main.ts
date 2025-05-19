@@ -15,6 +15,8 @@ dotenv.config();
 const port = parseInt(process.env['PORT'] ?? '8080');
 const app = express();
 
+process.on('uncaughtException', (error, origin) => console.log(error, origin));
+
 passport.use(jwtStrategy);
 app.use(passport.initialize());
 app.use(express.json());
