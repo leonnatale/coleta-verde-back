@@ -1,0 +1,28 @@
+meta {
+  name: Create solicitation and upload image
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{endpoint}}/solicitation/create
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  solicitation: '''
+    {
+        "type": "biohazard",
+        "addressIndex": 0,
+        "desiredDate": 2063189623000,
+        "description": "Lixo com risco biológico",
+        "suggestedValue": 10000
+    }
+  ''' @contentType(application/json)
+  image: @file(solicitation\create\flying beagle.jpg)
+}
