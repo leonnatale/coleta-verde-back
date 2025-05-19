@@ -17,7 +17,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
 
     const result: ISolicitation | null = await getSolicitationById(id);
 
-    if (!result || !unlimitedRoles.includes(request.user!.role)) {
+    if (!result || (!unlimitedRoles.includes(request.user!.role) && result.authorId != request.user!.id)) {
         response.status(404).json({ message: 'Not found' });
         return;
     }
