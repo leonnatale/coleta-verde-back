@@ -2,6 +2,11 @@ import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Contr
 import { EColetaRole, ISolicitation } from '@datatypes/Database';
 import { getSolicitationById, hideAttributes } from '@utils/Database';
 
+const unlimitedRoles = [
+    EColetaRole.employee,
+    EColetaRole.admin
+];
+
 async function main(request: IExpressRequest, response: IExpressResponse) {
     const id = parseInt(request.params.id);
 
@@ -12,7 +17,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
 
     const result: ISolicitation | null = await getSolicitationById(id);
 
-    if (!result) {
+    if (!result || !unlimitedRoles.includes(request.user!.role)) {
         response.status(404).json({ message: 'Not found' });
         return;
     }
@@ -24,6 +29,5 @@ export const controller: IController = {
     main,
     path: '/id/:id',
     method: 'GET',
-    authenticationRequired: true,
-    requiredRole: [EColetaRole.employee, EColetaRole.admin]
+    authenticationRequired: true
 }

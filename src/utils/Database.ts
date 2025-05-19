@@ -354,7 +354,7 @@ export async function getSolicitationByAddress(cep: string, unidade: string): Pr
     return solicitation;
 }
 
-export async function createSolicitation(data: ISolicitationCreation): Promise<ISolicitation | string> {
+export async function createSolicitation(data: ISolicitationCreation, file?: Express.Multer.File): Promise<ISolicitation | string> {
     const missingFields = showRequiredFields(data, ['type', 'addressIndex', 'description', 'desiredDate', 'suggestedValue']);
     if (missingFields) return missingFields;
 
@@ -365,7 +365,11 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
     
     const types = {
         rubble: EColetaType.rubble,
-        recycle: EColetaType.recycle
+        recycle: EColetaType.recycle,
+        organic: EColetaType.organic,
+        biohazard: EColetaType.biohazard,
+        eletronic: EColetaType.eletronic,
+        other: EColetaType.other
     };
     
     const type = types[data.type];
@@ -399,6 +403,8 @@ export async function createSolicitation(data: ISolicitationCreation): Promise<I
         desiredDate: data.desiredDate,
         createdAt: Date.now()
     };
+
+    if (file) solicitation.image = file.filename.replace(/\\/g, '/');
 
     await currentConnection.collection<ISolicitation>('Solicitation').insertOne(solicitation);
 
@@ -470,7 +476,7 @@ export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISo
 
 export async function listAllSolicitations(page: number, limit: number = 5): Promise<ISolicitation[]> {
     const solicitations = await currentConnection.collection<ISolicitation>('Solicitation')
-    .find({ accepted: false }, { projection: { _id: 0 } })
+    .find({}, { projection: { _id: 0 } })
     .skip((page - 1) * limit)
     .limit(limit)
     .toArray();

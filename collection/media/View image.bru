@@ -1,0 +1,16 @@
+meta {
+  name: View image
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{endpoint}}/media/:userId/:fileName
+  body: none
+  auth: inherit
+}
+
+params:path {
+  userId: 1
+  fileName: 0.jpg
+}

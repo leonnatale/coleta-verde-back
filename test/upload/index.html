@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload e solicitação</title>
+</head>
+<body>
+  <h2>Enviar Solicitação com Imagem</h2>
+  <input type="file" id="inputImagem" accept="image/*">
+  <br><br>
+  <button id="btnEnviar">Enviar</button>
+  <p id="mensagem"></p>
+
+  <script>
+    const endpoint = 'http://localhost:8080';
+    const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VjNTI4NDdiZmIyODczNTFlOTMxMDQiLCJpZCI6MywiZW1haWwiOiJlbXBsb3llZUBlbXBsb3llZS5jb20iLCJ2ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJFbXBsb3llZSdzIE5hbWUiLCJyb2xlIjoxLCJyYXRpbmciOjAsImNyZWF0ZWRBdCI6MTc0MzU0MDg2ODIxMywiY29tcGxldGVkU29saWNpdGF0aW9ucyI6MCwiY3BmIjoiMTExLjExMS4xMTEtMTEiLCJpYXQiOjE3NDc2MTU1NjgsImV4cCI6MTc0NzcwMTk2OH0.yWqt3BNahXhqhTYUw0zxc9HtpN8VLgZil6rBcjNgW48';
+    document.getElementById('btnEnviar').addEventListener('click', () => {
+      const imagem = document.getElementById('inputImagem').files[0];
+      const mensagem = document.getElementById('mensagem');
+
+      if (!imagem) {
+        mensagem.textContent = 'Por favor, selecione uma imagem.';
+        return;
+      }
+
+      const solicitation = {
+        type: "rubble",
+        addressIndex: 0,
+        description: "Entulho",
+        desiredDate: 1810510127000,
+        suggestedValue: 99.99
+      };
+
+      const formData = new FormData();
+      formData.append('solicitation', JSON.stringify(solicitation));
+      formData.append('image', imagem);
+
+      fetch(`${endpoint}/solicitation/create`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${jwt}`
+        },
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erro na requisição: ' + response.statusText);
+        }
+        return response.json();
+      })
+      .then(data => {
+        mensagem.textContent = 'Solicitação enviada com sucesso!';
+        console.log('Resposta do servidor:', data);
+      })
+      .catch(error => {
+        mensagem.textContent = 'Erro ao enviar a solicitação.';
+        console.error('Erro:', error);
+      });
+    });
+  </script>
+</body>
+</html>

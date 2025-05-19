@@ -13,7 +13,11 @@ export enum EColetaRole {
 
 export enum EColetaType {
     rubble,
-    recycle
+    recycle,
+    organic,
+    biohazard,
+    eletronic,
+    other
 }
 
 /* Interfaces */
@@ -73,6 +77,7 @@ export interface ISolicitation extends Document {
     suggestedValue: number,
     consent: number[],
     desiredDate: number,
+    image?: string,
     finalValue?: number,
     createdAt: number,
     finishedAt?: number

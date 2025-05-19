@@ -1,5 +1,5 @@
 /* Types */
-export type TColetaType = 'rubble' | 'recycle';
+export type TColetaType = 'rubble' | 'recycle' | 'organic' | 'biohazard' | 'eletronic' | 'other';
 
 /* Interfaces */
 export interface ISolicitationCreation {

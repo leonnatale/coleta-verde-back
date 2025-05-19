@@ -42,7 +42,8 @@ const methodColor = {
     GET: 'green',
     POST: 'purple',
     PUT: 'orange',
-    DELETE: 'red'
+    DELETE: 'red',
+    USE: 'pink'
 };
 
 app.listen(port, '0.0.0.0', async () => {
@@ -55,21 +56,19 @@ app.listen(port, '0.0.0.0', async () => {
             const controllerImport: IController = (await import(path.join(__dirname, 'controllers', controllerNamespace, controllerFileName))).controller;
             const urlPath = `/${controllerNamespace}${controllerImport.path}`;
             const method = controllerImport.method;
+            const middlewares = [];
+            if (controllerImport.authenticationRequired) middlewares.push(
+                (request: Request, response: IExpressResponse, next: NextFunction) => verifyTokenMiddleware(request, response, next, controllerImport.requiredRole)
+            );
+
+            if (controllerImport.middlewares) middlewares.push(...controllerImport.middlewares);
+
+            middlewares.push(responseMiddleware);
+            if (controllerImport.main) middlewares.push(controllerImport.main);
+
             app[method.toLowerCase() as keyof typeof app](
                 urlPath,
-                ...(controllerImport.authenticationRequired 
-                    ?
-                    [
-                        (request: Request, response: IExpressResponse, next: NextFunction) => verifyTokenMiddleware(request, response, next, controllerImport.requiredRole),
-                        responseMiddleware,
-                        controllerImport.main
-                    ]
-                    :
-                    [
-                        responseMiddleware,
-                        controllerImport.main
-                    ]
-                )
+                ...middlewares
             );
             Logger.log(`Mapped ${bold.keyword(methodColor[method])(method)} ${bold(urlPath)}`);
         }

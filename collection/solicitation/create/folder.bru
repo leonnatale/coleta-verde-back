@@ -1,20 +1,28 @@
 meta {
   name: create
-  seq: 1
 }
 
 docs {
   # Criação de uma solicitação
   
-  # Body data
+  Cria uma solicitação.
+  
+  > Essa parte de body é multipart, se trata de um formulário onde você envia campos, e nesses campos, cada um tem um Content-Type diferente
+  
+  # Campo `solicitation`
+  `Content-Type`: `application/json`
   ```
   {
       authorId: number,
-      type: 'rubble' | 'recycle',
+      type: 'rubble' | 'recycle' | 'organic' | 'biohazard' | 'eletronic' | 'other',
       addressIndex: number,
       desiredDate: string,
       description: string,
       suggestedValue: number
   }
   ```
+  # Campo `image`
+  `Content-Type`: `image/jpeg,jpg,png`
+  
+  Veja o exemplo de upload para saber mais.
 }

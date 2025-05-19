@@ -1,6 +1,11 @@
 import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
 import { EColetaRole, ISolicitation } from '@datatypes/Database';
-import { listAllSolicitations } from '@utils/Database';
+import { listAllSolicitations, listMySolicitations } from '@utils/Database';
+
+const unlimitedRoles = [
+    EColetaRole.employee,
+    EColetaRole.admin
+];
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
     const page = parseInt(request.query.page as string || '1');
@@ -21,7 +26,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
         return;
     }
 
-    const result: ISolicitation[] = await listAllSolicitations(page, limit);
+    const result: ISolicitation[] = await (unlimitedRoles.includes(request.user!.role) ? listAllSolicitations(page, limit) : listMySolicitations(page, limit));
 
     response.json({ data: result });
 }
@@ -30,6 +35,5 @@ export const controller: IController = {
     main,
     path: '/all',
     method: 'GET',
-    authenticationRequired: true,
-    requiredRole: [EColetaRole.employee, EColetaRole.admin]
+    authenticationRequired: true
 }

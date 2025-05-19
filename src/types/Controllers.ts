@@ -2,14 +2,15 @@ import { Request, Response } from 'express';
 import { EColetaRole, IColetaUser } from './Database';
 
 /* Types */
-export type TMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+export type TMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'USE';
 
 /* Interfaces */
 export interface IController {
-    main: (request: IExpressRequest, response: IExpressResponse) => Promise<void>,
+    main?: (request: IExpressRequest, response: IExpressResponse) => Promise<void>,
     path: string,
     method: TMethod,
     authenticationRequired: boolean,
+    middlewares?: any[],
     requiredRole?: EColetaRole | EColetaRole[]
 }
 
