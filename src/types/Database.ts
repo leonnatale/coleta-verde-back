@@ -1,7 +1,7 @@
 import { Document, ObjectId } from 'mongodb';
 
 /* Types */
-type TSolicitationProgress = 'created' | 'accepted' | 'inProgress' | 'finished';
+type TSolicitationProgress = 'created' | 'accepted' | 'inProgress' | 'finished' | 'expired' | 'cancelled';
 
 /* Enums */
 export enum EColetaRole {
@@ -79,6 +79,7 @@ export interface ISolicitation extends Document {
     desiredDate: number,
     image?: string,
     finalValue?: number,
+    expiration: number,
     createdAt: number,
     finishedAt?: number
 }

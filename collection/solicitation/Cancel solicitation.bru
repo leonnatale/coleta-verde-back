@@ -1,0 +1,19 @@
+meta {
+  name: Cancel solicitation
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{endpoint}}/solicitation/cancel/:id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  id: 1
+}
+
+auth:bearer {
+  token: {{token}}
+}

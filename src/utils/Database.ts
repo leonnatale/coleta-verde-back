@@ -354,6 +354,14 @@ export async function getSolicitationByAddress(cep: string, unidade: string): Pr
     return solicitation;
 }
 
+export async function cancelSolicitation(id: number) {
+    return currentConnection.collection<ISolicitation>('Solicitation').updateOne({ id }, { $set: { progress: 'cancelled' } })
+}
+
+export async function terminateExpiredSolicitation() {
+    return currentConnection.collection<ISolicitation>('Solicitation').updateMany({ $where() { return Date.now() > this.expiration } }, { $set: { progress: 'expired' } })
+}
+
 export async function createSolicitation(data: ISolicitationCreation, file?: Express.Multer.File): Promise<ISolicitation | string> {
     const missingFields = showRequiredFields(data, ['type', 'addressIndex', 'description', 'desiredDate', 'suggestedValue']);
     if (missingFields) return missingFields;
@@ -380,8 +388,8 @@ export async function createSolicitation(data: ISolicitationCreation, file?: Exp
     
     if (!address) return 'Invalid address index';
     
-    const solicitationData = await getSolicitationByAddress(address.cep, address.unidade);
-    if (solicitationData && solicitationData.address.unidade == address.unidade) return 'A solicitation already exists for this same address.';
+    const solicitationData = await getSolicitationByAddress(address.cep, address.unidade); 
+    if (solicitationData) if (solicitationData.address.unidade == address.unidade || !([ 'expired', 'cancelled', 'finished' ].includes(solicitationData.progress))) return 'A solicitation already exists for this same address.';
 
     if (data.description.length > 3_000) return 'Description field exceeded the max characters limit';
 
@@ -389,6 +397,8 @@ export async function createSolicitation(data: ISolicitationCreation, file?: Exp
     if (data.suggestedValue <= 0) return 'Suggested value must be greater than 0.';
 
     const suggestedValue = parseFloat(data.suggestedValue.toFixed(2));
+    const now = Date.now();
+    const expiration = now + 10000;
 
     const solicitation: ISolicitation = {
         id: (await getLastSolicitationId()) + 1,
@@ -401,7 +411,8 @@ export async function createSolicitation(data: ISolicitationCreation, file?: Exp
         accepted: false,
         consent: [],
         desiredDate: data.desiredDate,
-        createdAt: Date.now()
+        expiration,
+        createdAt: now
     };
 
     if (file) solicitation.image = file.filename.replace(/\\/g, '/');
@@ -419,6 +430,8 @@ export async function suggestNewValue(data: ISolicitationSuggestNewValue): Promi
     if (!solicitation) return 'Solicitation not found.';
 
     if (solicitation.authorId !== data.authorId && solicitation.employeeId !== data.authorId) return 'You\'re not allowed';
+    
+    if (solicitation.progress != 'accepted') return 'Can\'t suggest a new value';
 
     const newValue = parseFloat(data.value.toFixed(2));
 
@@ -462,7 +475,7 @@ export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISo
     const solicitation = await getSolicitationById(data.id);
     if (!solicitation) return 'Solicitation not found.';
 
-    if (solicitation.accepted) return 'This solicitation couldn\'t be accepted';
+    if (solicitation.accepted || solicitation.progress != 'created') return 'This solicitation couldn\'t be accepted';
 
     if (solicitation.authorId == data.employeeId) return 'You can\'t accept solicitations created by yourself';
 

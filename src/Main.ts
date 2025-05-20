@@ -1,7 +1,7 @@
 import { IController, IExpressResponse, IResponse } from '@datatypes/Controllers';
 import { jwtStrategy, rateLimitMiddleware, verifyTokenMiddleware } from '@utils/Passport';
 import Logger from '@utils/Logger';
-import { openMongoConnection } from '@utils/Database';
+import { openMongoConnection, terminateExpiredSolicitation } from '@utils/Database';
 import dotenv from 'dotenv';
 import express, { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
@@ -51,6 +51,9 @@ const methodColor = {
 app.listen(port, '0.0.0.0', async () => {
     await openMongoConnection();
     await initializeMailer();
+
+    setTimeout(terminateExpiredSolicitation, 1000);
+
     for (const controllerNamespace of controllers) {
         Logger.log(`Mapping controller ${bold.yellowBright(controllerNamespace)}`);
         const controllerFiles = readdirSync(path.join(__dirname, 'controllers', controllerNamespace)).filter(file => file.endsWith('.ts'));

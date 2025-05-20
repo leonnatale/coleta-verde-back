@@ -1,5 +1,5 @@
 import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
-import { ISolicitation } from '@datatypes/Database';
+import { EColetaRole, ISolicitation } from '@datatypes/Database';
 import { ISolicitationCreation } from '@datatypes/Solicitation';
 import { createSolicitation, hideAttributes } from '@utils/Database';
 import multer from 'multer';
@@ -57,5 +57,6 @@ export const controller: IController = {
     path: '/create',
     method: 'POST',
     authenticationRequired: true,
-    middlewares: [ uploadImageMiddleware.single('image') ]
+    middlewares: [ uploadImageMiddleware.single('image') ],
+    requiredRole: [ EColetaRole.admin, EColetaRole.enterprise, EColetaRole.user ]
 }
