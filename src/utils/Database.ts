@@ -359,7 +359,7 @@ export async function cancelSolicitation(id: number) {
 }
 
 export async function terminateExpiredSolicitation() {
-    return currentConnection.collection<ISolicitation>('Solicitation').updateMany({ $where() { return Date.now() > this.expiration } }, { $set: { progress: 'expired' } })
+    const result = await currentConnection.collection<ISolicitation>('Solicitation').updateMany({ expiration: { $lt: Date.now() } }, { $set: { progress: 'expired' } })
 }
 
 export async function createSolicitation(data: ISolicitationCreation, file?: Express.Multer.File): Promise<ISolicitation | string> {
@@ -398,7 +398,8 @@ export async function createSolicitation(data: ISolicitationCreation, file?: Exp
 
     const suggestedValue = parseFloat(data.suggestedValue.toFixed(2));
     const now = Date.now();
-    const expiration = now + 10000;
+    const expiration = new Date(now);
+    expiration.setDate(expiration.getDate() + 1);
 
     const solicitation: ISolicitation = {
         id: (await getLastSolicitationId()) + 1,
@@ -411,7 +412,7 @@ export async function createSolicitation(data: ISolicitationCreation, file?: Exp
         accepted: false,
         consent: [],
         desiredDate: data.desiredDate,
-        expiration,
+        expiration: expiration.getTime(),
         createdAt: now
     };
 

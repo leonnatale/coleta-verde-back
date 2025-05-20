@@ -52,7 +52,7 @@ app.listen(port, '0.0.0.0', async () => {
     await openMongoConnection();
     await initializeMailer();
 
-    setTimeout(terminateExpiredSolicitation, 1000);
+    setInterval(terminateExpiredSolicitation, 60_000);
 
     for (const controllerNamespace of controllers) {
         Logger.log(`Mapping controller ${bold.yellowBright(controllerNamespace)}`);
