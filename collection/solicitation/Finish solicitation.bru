@@ -1,0 +1,19 @@
+meta {
+  name: Finish solicitation
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{endpoint}}/solicitation/finish/:id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  id: 1
+}
+
+auth:bearer {
+  token: {{token}}
+}

@@ -1,7 +1,7 @@
 import { Document, ObjectId } from 'mongodb';
 
 /* Types */
-type TSolicitationProgress = 'created' | 'accepted' | 'inProgress' | 'finished' | 'expired' | 'cancelled';
+type TSolicitationProgress = 'created' | 'accepted' | 'paying' | 'inProgress' | 'finished' | 'expired' | 'cancelled';
 
 /* Enums */
 export enum EColetaRole {

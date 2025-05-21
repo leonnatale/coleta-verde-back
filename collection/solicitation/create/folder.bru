@@ -1,5 +1,6 @@
 meta {
   name: create
+  seq: 1
 }
 
 docs {
@@ -14,7 +15,7 @@ docs {
   ```
   {
       authorId: number,
-      type: 'rubble' | 'recycle' | 'organic' | 'biohazard' | 'eletronic' | 'other',
+      type: 'created' | 'accepted' | 'inProgress' | 'paying' | 'finished' | 'expired' | 'cancelled',
       addressIndex: number,
       desiredDate: string,
       description: string,

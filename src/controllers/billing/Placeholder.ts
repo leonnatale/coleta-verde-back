@@ -8,10 +8,15 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
 
     if (!result) {
         response.status(404).json({});
-        return
+        return;
     }
 
-    await approveSolicitation(id)
+    if (result.progress != 'paying') {
+        response.status(400).json({ message: 'Can\'t approve.' });
+        return;
+    }
+
+    await approveSolicitation(id);
     response.json({});
 }
 

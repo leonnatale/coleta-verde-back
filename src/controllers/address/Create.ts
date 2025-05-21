@@ -1,5 +1,6 @@
 import { IAddressCreation } from '@datatypes/Address';
 import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
+import { EColetaRole } from '@datatypes/Database';
 import { createAddress } from '@utils/Database';
 
 async function main(request: IExpressRequest, response: IExpressResponse) {
@@ -20,5 +21,6 @@ export const controller: IController = {
     main,
     path: '/create',
     method: 'POST',
-    authenticationRequired: true
+    authenticationRequired: true,
+    requiredRole: [ EColetaRole.user, EColetaRole.enterprise, EColetaRole.admin ]
 }

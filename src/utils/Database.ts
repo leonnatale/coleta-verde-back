@@ -292,7 +292,7 @@ export async function createAddress(data: IAddressCreation, userId: number): Pro
 
     const addressData = await getAddressFromCEP(data.cep);
 
-    if (!addressData) return 'Doesn\'t exist addresses with this CEP.';
+    if (addressData.erro) return 'Doesn\'t exist addresses with this CEP.';
 
     const user = await getUserById(userId);
     if (!user) return 'User not found.';
@@ -467,7 +467,7 @@ export async function consentFinalValue(data: ISolicitationConsentFinalValue): P
     if (solicitation.consent.includes(solicitation.authorId) && solicitation.consent.includes(solicitation.employeeId!))
         await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
             { id: data.id },
-            { $set: { finalValue: solicitation.suggestedValue } }
+            { $set: { finalValue: solicitation.suggestedValue, progress: 'paying' } }
         );
 
     return solicitation;
@@ -483,7 +483,7 @@ export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISo
 
     await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
         { id: data.id },
-        { $set: { accepted: true, employeeId: data.employeeId } }
+        { $set: { accepted: true, employeeId: data.employeeId, progress: 'paying' } }
     );
 
     return solicitation;
@@ -491,7 +491,7 @@ export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISo
 
 export async function listAllSolicitations(page: number, limit: number = 5): Promise<ISolicitation[]> {
     const solicitations = await currentConnection.collection<ISolicitation>('Solicitation')
-    .find({}, { projection: { _id: 0 } })
+    .find({ progress: 'created', accepted: false }, { projection: { _id: 0 } })
     .skip((page - 1) * limit)
     .limit(limit)
     .toArray();
@@ -509,7 +509,12 @@ export async function listMySolicitations(authorId: number, page: number, limit:
 
 export async function approveSolicitation(id: number) {
     return currentConnection.collection<ISolicitation>('Solicitation')
-    .updateOne({ id }, { $set: { paid: true } });
+    .updateOne({ id }, { $set: { paid: true, progress: 'inProgress' } });
+}
+
+export async function finishSolicitation(id: number) {
+    return currentConnection.collection<ISolicitation>('Solicitation')
+    .updateOne({ id }, { $set: { progress: 'finished' } });
 }
 
 /* End solicitation */
