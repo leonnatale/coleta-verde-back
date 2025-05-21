@@ -410,6 +410,7 @@ export async function createSolicitation(data: ISolicitationCreation, file?: Exp
         description: data.description,
         suggestedValue,
         accepted: false,
+        paid: false,
         consent: [],
         desiredDate: data.desiredDate,
         expiration: expiration.getTime(),
@@ -504,6 +505,11 @@ export async function listMySolicitations(authorId: number, page: number, limit:
     .limit(limit)
     .toArray();
     return solicitations;
+}
+
+export async function approveSolicitation(id: number) {
+    return currentConnection.collection<ISolicitation>('Solicitation')
+    .updateOne({ id }, { $set: { paid: true } });
 }
 
 /* End solicitation */

@@ -77,6 +77,7 @@ export interface ISolicitation extends Document {
     suggestedValue: number,
     consent: number[],
     desiredDate: number,
+    paid: boolean,
     image?: string,
     finalValue?: number,
     expiration: number,
