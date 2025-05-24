@@ -491,7 +491,7 @@ export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISo
 
 export async function listAllSolicitations(page: number, limit: number = 5): Promise<ISolicitation[]> {
     const solicitations = await currentConnection.collection<ISolicitation>('Solicitation')
-    .find({ progress: 'created', accepted: false }, { projection: { _id: 0 } })
+    .find({}, { projection: { _id: 0 } })
     .skip((page - 1) * limit)
     .limit(limit)
     .toArray();
