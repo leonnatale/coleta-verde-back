@@ -476,8 +476,8 @@ export async function consentFinalValue(data: ISolicitationConsentFinalValue): P
 export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISolicitation | string> {
     const solicitation = await getSolicitationById(data.id);
     if (!solicitation) return 'Solicitation not found.';
-
-    if (solicitation.accepted || solicitation.progress != 'created') return 'This solicitation couldn\'t be accepted';
+    /* Je ne l'aime pas */
+    if (solicitation.accepted || solicitation.progress != 'inProgress' /* inicialmente 'created' */) return 'This solicitation couldn\'t be accepted';
 
     if (solicitation.authorId == data.employeeId) return 'You can\'t accept solicitations created by yourself';
 
