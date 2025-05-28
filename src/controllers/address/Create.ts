@@ -21,6 +21,5 @@ export const controller: IController = {
     main,
     path: '/create',
     method: 'POST',
-    authenticationRequired: true,
-    requiredRole: [ EColetaRole.user, EColetaRole.enterprise, EColetaRole.admin ]
+    authenticationRequired: true
 }

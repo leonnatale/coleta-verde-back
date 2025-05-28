@@ -1,7 +1,7 @@
 import { Document, ObjectId } from 'mongodb';
 
 /* Types */
-type TSolicitationProgress = 'created' | 'accepted' | 'paying' | 'inProgress' | 'finished' | 'expired' | 'cancelled';
+type TSolicitationProgress = 'paying' | 'waiting' | 'inProgress' | 'finished' | 'expired' | 'cancelled';
 
 /* Enums */
 export enum EColetaRole {
@@ -75,7 +75,6 @@ export interface ISolicitation extends Document {
     address: IColetaAddress,
     description: string,
     suggestedValue: number,
-    consent: number[],
     desiredDate: number,
     paid: boolean,
     image?: string,

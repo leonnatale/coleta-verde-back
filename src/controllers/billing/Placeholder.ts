@@ -11,7 +11,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
         return;
     }
 
-    if (result.progress != 'created') { /* inicialmente 'paying' */
+    if (result.progress != 'paying') {
         response.status(400).json({ message: 'Can\'t approve.' });
         return;
     }

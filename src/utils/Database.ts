@@ -359,7 +359,7 @@ export async function cancelSolicitation(id: number) {
 }
 
 export async function terminateExpiredSolicitation() {
-    const result = await currentConnection.collection<ISolicitation>('Solicitation').updateMany({ expiration: { $lt: Date.now() } }, { $set: { progress: 'expired' } })
+    await currentConnection.collection<ISolicitation>('Solicitation').updateMany({ expiration: { $lt: Date.now() }, progress: 'paying' }, { $set: { progress: 'expired' } })
 }
 
 export async function createSolicitation(data: ISolicitationCreation, file?: Express.Multer.File): Promise<ISolicitation | string> {
@@ -404,14 +404,13 @@ export async function createSolicitation(data: ISolicitationCreation, file?: Exp
     const solicitation: ISolicitation = {
         id: (await getLastSolicitationId()) + 1,
         authorId: data.authorId,
-        progress: 'created',
+        progress: 'paying',
         type,
         address,
         description: data.description,
         suggestedValue,
         accepted: false,
         paid: false,
-        consent: [],
         desiredDate: data.desiredDate,
         expiration: expiration.getTime(),
         createdAt: now
@@ -424,66 +423,17 @@ export async function createSolicitation(data: ISolicitationCreation, file?: Exp
     return solicitation;
 }
 
-export async function suggestNewValue(data: ISolicitationSuggestNewValue): Promise<string | null> {
-    if (isNaN(data.value) || typeof data.value !== 'number') return 'Final value is not a number';
-    if (data.value <= 0) return 'Final value must be greater than 0.';
-
-    const solicitation = await getSolicitationById(data.id);
-    if (!solicitation) return 'Solicitation not found.';
-
-    if (solicitation.authorId !== data.authorId && solicitation.employeeId !== data.authorId) return 'You\'re not allowed';
-    
-    if (solicitation.progress != 'accepted') return 'Can\'t suggest a new value';
-
-    const newValue = parseFloat(data.value.toFixed(2));
-
-    await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
-        { id: data.id },
-        { $set: { suggestedValue: newValue, consent: [] } }
-    );
-
-    return null;
-}
-
-export async function consentFinalValue(data: ISolicitationConsentFinalValue): Promise<ISolicitation | string> {
-    let solicitation = await getSolicitationById(data.id);
-    if (!solicitation) return 'Solicitation not found.';
-
-    if (solicitation.finalValue != undefined) return 'Final value is already defined';
-
-    if (!solicitation.accepted) return 'Solicitation is not accepted';
-
-    if (solicitation.employeeId !== data.authorId && solicitation.authorId !== data.authorId) return 'You\'re not allowed.';
-
-    if (solicitation.consent.includes(data.authorId)) return 'You\'ve already consented.';
-
-    await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
-        { id: data.id },
-        { $push: { consent: data.authorId as any } }
-    );
-
-    solicitation = (await getSolicitationById(data.id))!;
-
-    if (solicitation.consent.includes(solicitation.authorId) && solicitation.consent.includes(solicitation.employeeId!))
-        await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
-            { id: data.id },
-            { $set: { finalValue: solicitation.suggestedValue, progress: 'paying' } }
-        );
-
-    return solicitation;
-}
-
 export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISolicitation | string> {
     const solicitation = await getSolicitationById(data.id);
     if (!solicitation) return 'Solicitation not found.';
-    /* Je ne l'aime pas */
-    if (solicitation.accepted || solicitation.progress != 'inProgress' /* inicialmente 'created' */) return 'This solicitation couldn\'t be accepted';
+    
+    if (solicitation.accepted || solicitation.progress != 'waiting') return 'This solicitation couldn\'t be accepted';
 
     if (solicitation.authorId == data.employeeId) return 'You can\'t accept solicitations created by yourself';
 
     await currentConnection.collection<ISolicitation>('Solicitation').updateOne(
         { id: data.id },
-        { $set: { accepted: true, employeeId: data.employeeId, progress: 'paying' } }
+        { $set: { accepted: true, employeeId: data.employeeId, progress: 'inProgress' } }
     );
 
     return solicitation;
@@ -491,7 +441,7 @@ export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISo
 
 export async function listAllSolicitations(page: number, limit: number = 5): Promise<ISolicitation[]> {
     const solicitations = await currentConnection.collection<ISolicitation>('Solicitation')
-    .find({}, { projection: { _id: 0 } })
+    .find({ progress: 'waiting' }, { projection: { _id: 0 } })
     .skip((page - 1) * limit)
     .limit(limit)
     .toArray();
@@ -509,7 +459,7 @@ export async function listMySolicitations(authorId: number, page: number, limit:
 
 export async function approveSolicitation(id: number) {
     return currentConnection.collection<ISolicitation>('Solicitation')
-    .updateOne({ id }, { $set: { paid: true, progress: 'inProgress' } });
+    .updateOne({ id }, { $set: { paid: true, progress: 'waiting' } });
 }
 
 export async function finishSolicitation(id: number) {
