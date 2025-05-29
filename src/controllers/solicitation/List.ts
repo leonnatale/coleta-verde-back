@@ -1,6 +1,6 @@
 import { IController, IExpressRequest, IExpressResponse } from '@datatypes/Controllers';
 import { EColetaRole, ISolicitation } from '@datatypes/Database';
-import { listAllSolicitations, listMySolicitations } from '@utils/Database';
+import { listAllPendingSolicitations, listMySolicitations } from '@utils/Database';
 
 const unlimitedRoles = [
     EColetaRole.employee,
@@ -26,7 +26,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
         return;
     }
 
-    const result: ISolicitation[] = await (unlimitedRoles.includes(request.user!.role) ? listAllSolicitations(request.user!.id, page, limit) : listMySolicitations(request.user!.id, page, limit));
+    const result: ISolicitation[] = await (unlimitedRoles.includes(request.user!.role) ? listAllPendingSolicitations(request.user!.id, page, limit) : listMySolicitations(request.user!.id, page, limit));
     response.json({ data: result });
 }
 
