@@ -26,7 +26,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
         return;
     }
 
-    const result: ISolicitation[] = await (unlimitedRoles.includes(request.user!.role) ? listAllSolicitations(page, limit) : listMySolicitations(request.user!.id, page, limit));
+    const result: ISolicitation[] = await (unlimitedRoles.includes(request.user!.role) ? listAllSolicitations(request.user!.id, page, limit) : listMySolicitations(request.user!.id, page, limit));
     response.json({ data: result });
 }
 

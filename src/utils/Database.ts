@@ -439,9 +439,9 @@ export async function acceptSolicitation(data: ISolicitationAccept): Promise<ISo
     return solicitation;
 }
 
-export async function listAllSolicitations(page: number, limit: number = 5): Promise<ISolicitation[]> {
+export async function listAllPendingSolicitations(employeeId: number, page: number, limit: number = 5): Promise<ISolicitation[]> {
     const solicitations = await currentConnection.collection<ISolicitation>('Solicitation')
-    .find({ progress: 'waiting' }, { projection: { _id: 0 } })
+    .find({ $or: [ { progress: 'waiting' }, { employeeId } ] }, { projection: { _id: 0 } })
     .skip((page - 1) * limit)
     .limit(limit)
     .toArray();
