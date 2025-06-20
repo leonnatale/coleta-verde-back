@@ -46,6 +46,7 @@ export interface IColetaUser extends Document {
     createdAt: number,
     rating: number,
     completedSolicitations?: number,
+    credits: number,
     cpf?: string,
     cnpj?: string
 }

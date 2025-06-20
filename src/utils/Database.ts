@@ -160,6 +160,7 @@ export async function registerUser(data: IAuthRegister): Promise<IColetaUser | s
         password,
         role: roles[data.accountType],
         rating: 0,
+        credits: 0,
         addresses: [],
         createdAt: Date.now()
     };
@@ -462,9 +463,12 @@ export async function approveSolicitation(id: number) {
     .updateOne({ id }, { $set: { paid: true, progress: 'waiting' } });
 }
 
-export async function finishSolicitation(id: number) {
-    return currentConnection.collection<ISolicitation>('Solicitation')
-    .updateOne({ id }, { $set: { progress: 'finished' } });
+export async function finishSolicitation(id: number, authorId: number) {
+    const solicitation = await currentConnection.collection<ISolicitation>('Solicitation')
+    .findOneAndUpdate({ id }, { $set: { progress: 'finished' } });
+    currentConnection
+    .collection<IColetaUser>('User')
+    .updateOne({ id: authorId }, { $inc: { credits: solicitation?.finalValue ?? 0 } });
 }
 
 /* End solicitation */
