@@ -27,7 +27,7 @@ async function main(request: IExpressRequest, response: IExpressResponse) {
         return;
     }
 
-    await finishSolicitation(id);
+    await finishSolicitation(id, request.user!.id);
 
     response.json({});
 }
