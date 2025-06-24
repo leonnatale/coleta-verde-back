@@ -468,7 +468,7 @@ export async function finishSolicitation(id: number, authorId: number) {
     .findOneAndUpdate({ id }, { $set: { progress: 'finished' } });
     currentConnection
     .collection<IColetaUser>('User')
-    .updateOne({ id: authorId }, { $inc: { credits: solicitation?.finalValue ?? 0 } });
+    .updateOne({ id: authorId }, { $inc: { credits: solicitation?.suggestedValue } });
 }
 
 /* End solicitation */
